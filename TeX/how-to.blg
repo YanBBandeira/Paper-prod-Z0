@@ -1,0 +1,109 @@
+This is BibTeX, Version 0.99d (TeX Live 2022/dev/Debian)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: how-to.aux
+The style file: apsrev4-2.bst
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: how-toNotes.bib
+Database file #2: refs.bib
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 9000 items from 6000.
+apsrev4-2.bst 2019-01-14 (MD) hand-edited version of apsrev4-1.bst
+Control: key (0) 
+Control: author (72) initials jnrlst
+Control: editor formatted (1) identically to author
+Control: production of article title (-1) disabled
+Control: page (0) single
+Control: year (1) truncated
+Control: production of eprint (0) enabled
+Warning--missing number in Bandeira:2024zjl
+"J. High Energy Phys." is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+"J. High Energ. Phys." is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+"JHEP" is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+"Journal of Cosmology and Astroparticle Physics" is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+"J. Cosmol. Astropart. Phys." is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+"JCAP" is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+"Journal of Instrumentation" is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+"J. Instrum." is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+"JINST" is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+"Journal of Statistical Mechanics" is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+"J. of Stat. Mech." is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+"J. Stat. Mech.: Theory Exp." is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+"JSTAT" is a string literal, `journal' is a missing field
+---they aren't the same literal types for entry Bandeira:2025fut
+while executing---line 3515 of file apsrev4-2.bst
+Warning--missing journal in Bandeira:2025fut
+Warning--missing number in LHCb:2021huf
+You've used 4 entries,
+            6079 wiz_defined-function locations,
+            1665 strings with 15809 characters,
+and the built_in function-call counts, 4278 in all, are:
+= -- 299
+> -- 98
+< -- 23
++ -- 33
+- -- 22
+* -- 696
+:= -- 406
+add.period$ -- 4
+call.type$ -- 4
+change.case$ -- 16
+chr.to.int$ -- 3
+cite$ -- 7
+duplicate$ -- 378
+empty$ -- 283
+format.name$ -- 57
+if$ -- 822
+int.to.chr$ -- 2
+int.to.str$ -- 12
+missing$ -- 49
+newline$ -- 64
+num.names$ -- 12
+pop$ -- 152
+preamble$ -- 1
+purify$ -- 20
+quote$ -- 0
+skip$ -- 183
+stack$ -- 0
+substring$ -- 91
+swap$ -- 370
+text.length$ -- 10
+text.prefix$ -- 0
+top$ -- 8
+type$ -- 55
+warning$ -- 3
+while$ -- 11
+width$ -- 0
+write$ -- 84
+(There were 13 error messages)

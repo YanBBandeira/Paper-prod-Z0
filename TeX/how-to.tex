@@ -1,0 +1,191 @@
+\documentclass[aps,prd,preprint,superscriptaddress,nofootinbib]{revtex4-2}
+% --------------------------------------
+% Pacotes básicos
+% --------------------------------------
+\usepackage[utf8]{inputenc}     % Codificação de entrada (pode ser omitido em compilações modernas)
+\usepackage[T1]{fontenc}        % Codificação da fonte
+\usepackage{lmodern}            % Fonte Latin Modern (melhora a aparência)
+\usepackage[english]{babel}     % Língua principal do documento
+\usepackage{microtype}          % Melhorias na justificação do texto
+\usepackage{amsmath,amssymb}    % Símbolos e ambientes matemáticos
+\usepackage{slashed}            % Notação para Dirac slash
+\usepackage{graphicx}           % Inclusão de figuras
+\usepackage{xcolor}             % Cores para texto e gráficos
+\usepackage{hyperref}           % Links e referências clicáveis
+\hypersetup{
+	colorlinks = true,
+	linkcolor = blue,
+	citecolor = blue,
+	urlcolor  = blue
+}
+
+% --------------------------------------
+% Pacotes adicionais úteis
+% --------------------------------------
+\usepackage{enumitem}           % Controle fino sobre listas
+\usepackage{braket}             % Notação de bra-ket
+\usepackage{bm}                 % Símbolos matemáticos em negrito
+\usepackage{physics}            % Derivadas, operadores, etc.
+\usepackage{float}              % Controle de posicionamento de figuras/tabelas
+
+% --------------------------------------
+% Comandos personalizados (exemplo)
+% --------------------------------------
+\renewcommand{\dd}{\mathrm{d}}
+
+
+
+% --------------------------------------
+% Início do documento
+% --------------------------------------
+\begin{document}
+	
+	% Título
+	\title{Forward $z^0 \rightarrow \mu^+ \mu^-$ production in $pp$ collisions using the CDSM framework}
+	
+	% Autores e afiliações (exemplo)
+	\author{Yan Bandeira}
+	\email{yan.bandeira@ufpel.edu.br}
+	\affiliation{Federal University of Pelotas, Pelotas, Brazil}
+	\affiliation{Institute of Nuclear Physics of the Polish Academy of Sciences, Kraków, Poland}
+	
+	\date{\today}
+	
+	\maketitle
+	
+\section{Introduction}
+	
+In series of Refs.~\cite{Bandeira:2024zjl,Bandeira:2024jjl,Bandeira:2025fut}, we lay groundwork to perform a series of phenomenological work. Thus, in this document we will perform the evaluation of inclusive $Z^0$ production in $pp$ collision decaying into dimuon $\mu^+ \mu^-$ pair. Moreover, we will compare the numerical results with the DATA present in Ref.~\cite{LHCb:2021huf} by the LHCb collaboration.
+\par 
+In Ref.~\cite{LHCb:2021huf}, the production cross-section was measured in the following pseudorapidity region $2.0 < \eta < 4.5$ and transverse momentum $p_T > 20$ GeV/c for both muons and dimuon invariant mass $60 < M_{\mu\mu} < 120$ GeV/c$^2$ at $\sqrt s = 13$TeV.
+\par 
+This document has the following structure, in the next section we will approach the full process differential cross-section i.e. $pp\rightarrow (Z^0 \rightarrow \mu^+\mu^-)X$. In the third section, we will discuss only the $Z^0$ electroweak gauge boson production cross-section which relates with the prescription present in Refs.~\cite{Bandeira:2024zjl,Bandeira:2024jjl}  by us.
+\section{Full differential cross-section}
+
+In this section, we will discuss the forward dimuon cross-section. At forward rapidities, one expects the collinear factorization. Thus, in this scenario a hybrid factorization scheme must be used, in particular we will use the color -- dipole $S$--matrix framework. In the hybrid factorization scheme, the lepton pair produciton is described by (in what follows $M \equiv M_{\mu\mu}$)
+\begin{eqnarray}\label{sig-tot}
+	{ \dd \sigma(pp\rightarrow [Z^0 \rightarrow \mu^+\mu^-]X) \over \dd^2 p_T \dd M^2 \dd \eta } &=& 
+	\mathcal{F}_{Z^0 \rightarrow \mu^+\mu^-}(M)
+	{ \dd \sigma(pp \rightarrow Z^0 X)
+	\over 
+	  \dd^2 p_T \dd \eta \, 
+	}
+\end{eqnarray}
+where 
+\begin{eqnarray}
+	\mathcal{F}_{Z^0 \rightarrow \mu^+\mu^-}(M) & = &
+	\mathrm{Br}(Z^0 \rightarrow \mu^+\mu^-) \rho_Z(M)\, .
+\end{eqnarray}
+\par 
+Here, the branching ration $\mathrm{Br}(Z^0 \rightarrow \mu^+\mu^-) \simeq 3.3662 \%$, and $\rho_Z(M)$ is the invariant mass distribution of the $Z^0$ boson in the narrow width approximation
+\begin{eqnarray}
+	\rho_Z(M) &=& {1\over \pi}
+	{ M\Gamma_Z(M)
+	\over 
+	(M^2 - m^2_Z)^2 + (M\Gamma(M))^2
+	}\, 
+\end{eqnarray}
+for 
+\begin{eqnarray}
+{\Gamma_Z(M) \over M} \ll 1 \,,
+\end{eqnarray}
+in terms of the on-shell $Z^0$ boson mass, $m_Z \simeq 91.2$ GeV, and the generalized total $Z^0$ decay width 
+\begin{eqnarray}
+	\Gamma_Z(M) &=& {\alpha_{\text{em}} M \over 6\sin^2 2\theta_W }
+	\left( 
+		{160 \over 3} \sin^4 \theta_W - 40\sin^2 \theta_W + 21
+	\right) \, .
+\end{eqnarray}
+
+
+\section{$Z^0$ production differential cross-section}
+In eq.~\eqref{sig-tot} r.h.s, $\dd \sigma(pp \rightarrow Z^0 X)$ is the inclusive $Z^0$ gauge boson production with invariant mass $M$ and transverse momentum $p_T$ in terms of the quark (antiquark) densities $q_f\, (\bar q_f)$ at momentum fraction $x_q = x_1/z$ which is given by
+\begin{eqnarray}\label{had-sig}
+	{ \dd \sigma(pp \rightarrow Z^0 X)
+		\over 
+		\dd^2 p_T \dd \eta \, 
+	} &=& J(\eta,p_T) {x_1 \over x_1 + x_2} 
+	\sum_f \sum_{L,T} \int^1_{x_1} {\dd z \over z^2} 
+\Big[ 
+	q_f(x_1/z,\mu^2_F) + \bar q_f(x_1/z,\mu^2_F)
+\Big]
+{ \dd \sigma(qp \rightarrow Z^0 X)
+	\over 
+	\dd \ln z \dd^2 p_T \, 
+} \nonumber \\ &&
+\end{eqnarray}
+where 
+\begin{eqnarray}
+ 	J(\eta, p_T) \equiv {\dd x_F \over \dd \eta } = { 2 \over \sqrt s}
+ 	\sqrt{M^2 + p_T^2} \cosh \eta \, ,
+\end{eqnarray}
+is the Jaccobian of transformation between Faynman variable $x_F =x_1 - x_2$ and pseudorapidity $\eta$ of the virtual gauge boson, $Z^0$. The differential cross-section in the r.h.s of eq.~\eqref{had-sig} is the parton--target cross section which describe the in interaction between the projectile quark with the proton target producing a $Z^0$ gauge boson. This parton--target cross-section is derived in details in Ref.~\cite{Bandeira:2024zjl} which has the following form:
+
+\begin{eqnarray}
+\frac{\dd\sigma_{T}\left(q\rightarrow qZ\right)}{\dd\ln z\dd p_T}\Biggr|_{V}&=& \frac{\left(C_{f}^{G}\right)^{2}\left(g_{V,f}\right)^{2}}{2\pi^{2}}\int\dd k \,k\,f(x,k)\left\{ z^{4}m_{f}^{2}\mathcal{E}_{1}(z,p,k,\epsilon)+\left[1+(1-z)^{2}\right]\mathcal{E}_{2}(z,p,k,\epsilon)\right\} \nonumber \\
+\\
+\frac{\dd\sigma_{T}\left(q\rightarrow qZ\right)}{ \dd\ln z \dd p_T}\Biggr|_{A} &=& \frac{\left(C_{f}^{G}\right)^{2}\left(g_{A,f}\right)^{2}}{2\pi^{2}}\int\dd k\,k\,f(x,k)\left\{ z^{2}m_{f}^{2}\left(2-z\right)^{2}\mathcal{E}_{1}(z,p,k,\epsilon)
+\right. \nonumber \\ && \left.
++\left[1+(1-z)^{2}\right]\mathcal{E}_{2}(z,p,k,\epsilon)\right\} 
+\\ 
+\frac{ \dd\sigma_{L}\left(q\rightarrow qZ\right)}{ \dd\ln z \dd p_T}\Biggr|_{V} &=& \frac{\left(C_{f}^{G}\right)^{2}\left(g_{V,f}\right)^{2}}{4\pi^{2}}\int\dd k \,k\,f(x,k)4\left(1-z\right)^{2}M^{2}\mathcal{E}_{1}(z,p,k,\epsilon)\\\frac{ \dd\sigma_{L}\left(q\rightarrow qZ\right)}{ \dd\ln z \dd p_T}\Biggr|_{A} &=& \frac{\left(C_{f}^{G}\right)^{2}\left(g_{A,f}\right)^{2}}{4\pi^{2}}\int\dd k \,k\,f(x,k)\left\{ 4\frac{\left(z^{2}m_{f}^{2}+(1-z)M^{2}\right)^{2}}{M^{2}}\mathcal{E}_{1}(z,p,k,\epsilon)
+\right. \nonumber \\ && \left.
++4\frac{z^{2}m_{f}^{2}}{M^{2}}\mathcal{E}_{2}(z,p,k,\epsilon)\right\} 
+\end{eqnarray}
+these four expression are the four possible polarization combination. Where $f(x,k)$ is the Unintegrated Gluon Distribution (UGD) and $\epsilon^{2}=(1-z)M^{2}+z^{2}m_{f}^{2}$. Moreover,
+
+\begin{eqnarray}
+\mathcal{E}_{1}(z,p,\epsilon) &=& 	\frac{1}{2}\int_{0}^{2\pi}\mathrm{d}\theta\left\{ \frac{1}{[\tau^{2}+\epsilon^{2}]^{2}}-\frac{2}{(p^{2}+\epsilon^{2})[\tau^{2}+\epsilon^{2}]}+\frac{1}{(p^{2}+\epsilon^{2})}\right\} \, , \\
+\mathcal{E}_{2}(z,p,\epsilon) &=& 	\frac{1}{2}\int_{0}^{2\pi}\mathrm{d}\theta\left\{ \frac{\tau^{2}}{[\tau^{2}+\epsilon^{2}]^{2}}-\frac{2\eta}{(p^{2}+\epsilon^{2})[\tau^{2}+\epsilon^{2}]}+\frac{p^{2}}{(p^{2}+\epsilon^{2})^{2}}\right\} .
+\end{eqnarray}
+for
+\begin{eqnarray}
+\tau^{2} &=& (\boldsymbol{p}-z\boldsymbol{k})^{2}=p^{2}+z^{2}k^{2}-2zpk\cos\theta. \\	
+\eta &=& \boldsymbol{p}\cdot(\boldsymbol{p}-z\boldsymbol{k})=p^{2}-zpk\cos\theta
+\end{eqnarray}
+\par 
+One can simplify the parton--target cross-section only in terms of transverse and longitudinal ones as: ($C_f^{Z} = { \sqrt{\alpha_{\text{em}}} \over \sin 2\theta_W}$)
+\begin{eqnarray}
+\frac{\dd\sigma_{T}\left(q\rightarrow qZ\right)}{\dd\ln z\dd p_T} &=&
+{ \sqrt{\alpha_{\text{em}}} \over 2\pi^2 \sin 2\theta_W}
+\int \dd k\,k\,f(x,k) \Bigg\{ 
+\Big[ (g_{V,f})^2 z^4 m^2_f + (g_{A,f})^2 z^2m^2_f (2-z)^2   \Big]
+\mathcal{E}_1(z,p,k,\epsilon)
+\nonumber \\ 
+&& +\left[1+(1-z)^{2}\right]\Big( (g_{V,f})^2 + (g_{A,f})^2\Big)\mathcal{E}_{2}(z,p,k,\epsilon)
+\Bigg\}
+\end{eqnarray}
+and 
+\begin{eqnarray}
+\frac{\dd\sigma_{L}\left(q\rightarrow qZ\right)}{\dd\ln z\dd p_T} &=&	
+{ \sqrt{\alpha_{\text{em}}} \over \pi^2 \sin 2\theta_W}
+\int \dd k\,k\,f(x,k) \Bigg\{ 
+(g_{A,f})^2 {z^2m_f^2 \over M^2}
+\mathcal{E}_2(z,p,k,\epsilon)
+\nonumber \\ && +
+\Bigg[ (g_{V,f})^2(1-z)^2M^2 + (g_{A,f})^2{\Big(z^2m_f^2 + (1-z)M^2\Big)^2 \over M^2 } \Bigg]
+\mathcal{E}_1(z,p,k,\epsilon) \Bigg\} 
+\nonumber \\ 
+\end{eqnarray}
+defining: 
+\begin{eqnarray}
+ \Gamma_T & = & (g_{V,f})^2 z^4 m^2_f + (g_{A,f})^2 z^2m^2_f (2-z)^2 \\
+ \Gamma_L & = & (g_{V,f})^2(1-z)^2M^2 + (g_{A,f})^2{\Big(z^2m_f^2 + (1-z)M^2\Big)^2 \over M^2 } \\
+ \Lambda_T & = & \left[1+(1-z)^{2}\right]\Big( (g_{V,f})^2 + (g_{A,f})^2\Big)\\
+ \Lambda_L & = & (g_{A,f})^2 {z^2m_f^2 \over M^2}
+\end{eqnarray}
+\par 
+Thus, the parton--target cross-section can be reduce to one expression:
+\begin{eqnarray}
+\frac{\dd\sigma\left(q\rightarrow qZ\right)}{\dd\ln z\dd p_T} &=&	
+{ \sqrt{\alpha_{\text{em}}} \over 2 \pi^2 \sin 2\theta_W}
+\int \dd k\,k\,f(x,k)	
+\Bigg\{ \Big( \Gamma_T + 2\Gamma_L \Big)\mathcal{E}_1(z,p,k,\epsilon)
++ \Big( \Lambda_T + 2 \Lambda_L \Big)\mathcal{E}_2(z,p,k,\epsilon)
+\Bigg\} \nonumber \\ 
+\end{eqnarray}
+\bibliographystyle{apsrev4-2}
+\bibliography{refs}
+
+
+\end{document}
