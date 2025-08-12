@@ -22,13 +22,15 @@ c     =================================================================
 
       
       ! TODO - Aqui, será todo o integrando em termos da rapidez e momentos e angulos
-      SUBROUTINE VegasIntegrand() 
+      SUBROUTINE VegasIntegrand(SigTot) 
       IMPLICIT NONE
 
       COMMON/xbj/x2
       EXTERNAL DileptonDecay, HadronicCrossSection
       ! TODO - Aqui devo fornecer os dados de x2
-
+      
+      Result = DileptonDecay()*HadronicCrossSection()
+      SigTot = Result
       END SUBROUTINE  
 
       FUNCTION DileptonDecay(M) 
@@ -50,6 +52,8 @@ c     =================================================================
 
       Result = InvariantMassDist*Branch
       DileptonDecay = Result
+
+ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       RETURN 
       END 
 
@@ -73,7 +77,8 @@ c     ------------------------------------------------------------------
       MC2 = MC**2.D0
       MB2 = MB**2.d0
 c     ------------------------------------------------------------------
-ctest      write(*,*) u,d,s,c,b,u_bar,d_bar,s_bar,c_bar,b_bar
+ctest      write(*,*) 'Masses', MU, MD, MS, MC, MB
+ctest      write(*,*) 'Pdfs:' u,d,s,c,b,u_bar,d_bar,s_bar,c_bar,b_bar
 
       HadronicCrossSection = Result
       RETURN
