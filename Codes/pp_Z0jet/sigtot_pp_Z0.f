@@ -29,7 +29,7 @@ c     =================================================================
       EXTERNAL DileptonDecay, HadronicCrossSection
       ! TODO - Aqui devo fornecer os dados de x2
       
-      Result = DileptonDecay()*HadronicCrossSection()
+      Result = DileptonDecay(M)*HadronicCrossSection()
       SigTot = Result
       END SUBROUTINE  
 
@@ -59,9 +59,38 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
 
       FUNCTION HadronicCrossSection()
       IMPLICIT NONE 
+      DOUBLE PRECISION HadronicCrossSection, Result
+      CHARACTER name*64
+      DOUBLE PRECISON f(-6:6)
       ! TODO - Tem que ver como chama a LHAPDF
       
 
+      call InitPDFsetByName(name)
+      call evolvePDF(x,Q,f)
+
+
+      g = f(0)
+        u = f(2)
+        d = f(1)
+        s = f(3)
+        c = f(4)
+        b = f(5)
+        ubar = f(-2)
+        dbar = f(-1)
+        sbar = f(-3)
+        cbar = f(-4)
+        bbar = f(-5)
+
+      u     = CT14Pdf(1,x1,Q)     !u
+      d     = CT14Pdf(2,x1,Q)     !d
+      s     = CT14Pdf(3,x1,Q)     !s
+      c     = CT14Pdf(4,x1,Q)     !c
+      b     = CT14Pdf(5,x1,Q)     !b
+      u_bar    = CT14Pdf(-1,x1,Q)     !u_bar
+      d_bar    = CT14Pdf(-2,x1,Q)     !d_bar
+      s_bar    = CT14Pdf(-3,x1,Q)     !s_bar 
+      c_bar    = CT14Pdf(-4,x1,Q)     !c_bar
+      b_bar    = CT14Pdf(-5,x1,Q)     !b_bar
 c     ------------------------------------------------------------------
 c     light quarks
       MU    = 0.14D0   
