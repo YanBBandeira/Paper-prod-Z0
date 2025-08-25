@@ -473,7 +473,8 @@ c     -----------------------------------------------------------------
       if(pt.gt.pt_min.and.pt.lt.pt_max) then 
             if(ipt.gt.0.and.ipt.le.npt) then
                   if(y.gt.2.0d0.and.y.lt.2.5d0) then
-            sig_ypt1(ipt) = sig_ypt1(ipt) + aintegrand/(dpt*dy)!*wgt/dpt
+                        deltaY = 2.0d0 - 2.5d0
+            sig_ypt1(ipt) = sig_ypt1(ipt) + aintegrand/(dpt*deltaY)!*wgt/dpt
                   endif
             endif 
       endif
