@@ -12,14 +12,14 @@
       
       program PL_grids_kslinear
       implicit none
-      integer::parameter :: nPoints=5000
+      integer, parameter :: nPoints=500
 c     ------------------------------------------------------------------
       double precision y(nPoints), y_min, y_max, dy 
       double precision pt(nPoints), pt_min, pt_max, dpt
-      double precision partonLevelSigma 
+      double precision partonLevelSigma,FuncPartonLevelSigma 
 
-      integer iy, ipt
-      external funcPartonLevelSigma
+      integer iy, ipt, iset
+      external FuncPartonLevelSigma
       
       iset = 400001 !KS-2013-linear 
       call TMDinit(iset)
@@ -30,27 +30,28 @@ c     ------------------------------------------------------------------
       pt_min = dlog10(1.d0)
       pt_max = dlog10(150.d0)
 
-      dy = (y_max - y_min)/dble(nPoints-1)
-      dpt = (pt_max - pt_min)/dble(nPoints-1)
+      dy = (y_max - y_min)/(nPoints-1)
+      dpt = (pt_max - pt_min)/(nPoints-1)
 
 c     ==================================================================
 c     Output files
 c     ==================================================================
 
-      open(unit=11,file="kslinear_grid.dat",status='unknown')
+      open(unit=11,file="Dat-Files/kslinear_grid.dat",status='unknown')
 
 c     ==================================================================
 c     Grid loop
 c     ==================================================================
       do iy=1,nPoints
-      y(iy) = y_min + dble(i-1)*dy
+      y(iy) = y_min + (iy-1)*dy
       
             do ipt = 1,nPoints
-      pt(ipt) = 10.d0**(pt_min + dble(ipt-1)*dpt) - 0.9d0
-      partonLevelSigma = funcPartonLevelSigma(pt(ipt),y(ipt))
+      pt(ipt) = 10.d0**(pt_min + (ipt-1)*dpt) - 0.9d0
+      partonLevelSigma = FuncPartonLevelSigma(pt(ipt),y(iy))
 
-      write(*,100) 'Computing point: y = ', y(i), ' pt = ', pt(ipt)
-      write(11,100) y(i), pt(i), partonLevelSigma
+      write(*,*) 'Computing point: y = ', y(iy), ' pt = ', pt(ipt)
+ctest      write(*,*)'Parton level cross section (pb/GeV): ',partonLevelSigma
+      write(11,100) y(iy), pt(ipt), partonLevelSigma
             end do 
       end do
 100   format(2x,6(E10.4,2x))
@@ -61,30 +62,31 @@ c     ==================================================================
 c     ==================================================================
 c     parton level cross section function
 c     ==================================================================
-      function funcPartonLevelSigma(ptVar,yVar)
-      implicit none 
+      function FuncPartonLevelSigma(ptVar,yVar)
       use parameters
-      double precision funcPartonLevelSigma, ptVar, yVar
-      double precision y, pt, pt2, M2, x1, x2
+      double precision FuncPartonLevelSigma, ptVar, yVar
+      double precision y, pt, pt2, M2, x1, x2, M
       double precision result, units,IntegrandHadronicCrossSection
       common/xbj/x2
-      common/hadronicVariables/pt, x1, M
-      external IntegrandHadronicCrossSection, daguss 
+      common/hadronicVariables/pt, x1
+      external IntegrandHadronicCrossSection, dgauss 
       
       pt = ptVar
       y  = yVar
 
+      M  = mz
       M2 = mz**2.d0
       pt2 = pt**2.d0
 
       x1 = (DSQRT(M2 + pt**2.d0)/RS)*DEXP(y)
       x2 = (DSQRT(M2 + pt**2.d0)/RS)*DEXP(-y)
 
-      result = 
-      dgauss(IntegrandHadronicCrossSection,0.01d0,1.d0,1.d-4)
+      result=dgauss(IntegrandHadronicCrossSection,0.01d0,1.d0,1.d-4) 
+              
     
       units = 0.389d9 !GeV-2 to pb
-      funcPartonLevelSigma = result*units
+      FuncPartonLevelSigma = result*units
+ctest      write(*,*) 'Variables: ', pt, y, x1, x2,M
       return 
       end 
 
@@ -114,10 +116,11 @@ c     =================================================================
       DOUBLE PRECISION mf, gfv, gfa
       
 
-      COMMON/hadronicVariables/pt, x1, M
+      COMMON/hadronicVariables/pt, x1
 
       EXTERNAL InitPDFsetByName, evolvePDF
 
+      M = mz
       z = alf 
       xf = x1/z 
       pt2 = pt*pt
