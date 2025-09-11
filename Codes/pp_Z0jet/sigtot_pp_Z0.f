@@ -65,9 +65,9 @@ c     =================================================================
 
       EXTERNAL vegasIntegrand
 
-      iset = 400001 !KS-2013-linear 
-      call TMDinit(iset)
-      call TMDset(iset)
+copt      iset = 400001 !KS-2013-linear 
+copt      call TMDinit(iset)
+copt      call TMDset(iset)
 
 
 c     =================================================================
@@ -235,7 +235,7 @@ c     =================================================================
       USE parameters
       IMPLICIT NONE
 
-      DOUBLE PRECISION IntegrandHadronicCrossSection,Dgaus
+      DOUBLE PRECISION InterpolateGrid
       DOUBLE PRECISION sigTot,yVar,m2Var,pt2Var,physicalWgt
       DOUBLE PRECISION varJacobian, preIntegral,Result,units,x1,x2
       DOUBLE PRECISION HadronicCrossSection, DileptonDecay
@@ -268,8 +268,8 @@ c     =================================================================
       COMMON/xbj/x2
       COMMON/hadronicVariables/pt, x1, M
 
-      EXTERNAL DileptonDecay,IntegrandHadronicCrossSection,
-     *         DGAUSS, InterpolateGrid
+      EXTERNAL DileptonDecay,DGAUSS, InterpolateGrid
+             
       
       y  = yVar
       pt = dsqrt(pt2Var)
@@ -288,7 +288,6 @@ ctest      WRITE(*,*) 'Kinematics: ', y, pt, M, x1, x2
 ctest      write(*,*) 'Pre-integral: ', varJacobian, preIntegral
 
       HadronicCrossSection =  InterpolateGrid(y,pt)  
-     & DGAUSS(IntegrandHadronicCrossSection, 0.d0, 1.d0, 1.d-4)
       Result = preIntegral*DileptonDecay(M)*HadronicCrossSection
 
       units = 0.389d9 !GeV-2 to pb
@@ -399,9 +398,6 @@ c     -----------------------------------------------------------------
 
       endif
 c     =================================================================
-
-
-
 101   continue
       END SUBROUTINE  
 
@@ -437,20 +433,24 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
 
 
       function InterpolateGrid(yVar,ptVar)
-      integer::parameter:: nPoints = 500
-      integer::parameter:: narg=2
-      dimension nent(2), arg(narg)
-      common/GridArrays/ent,yGrid,ptGrid,PartonLevelGrid
-
+      implicit none
+      integer, parameter :: nPoints = 493
+      integer, parameter :: narg=2
+      
+      integer :: nent(2), i, j
       double precision PartonLevelGrid(nPoints,nPoints)
       double precision ptGrid(nPoints), yGrid(nPoints)
-      double precision ent(nPoints + nPoints)
+      double precision ent(nPoints + nPoints), arg(narg)
       double precision y, pt, yVar, ptVar,InterpolateGrid
-      char*200 :: File
+      double precision DFINT
+      character*200 :: File
       
-      File = '/Grids/Dat-Files/kslinear_grid.dat'
+      common/GridArrays/ent,yGrid,ptGrid,PartonLevelGrid
 
-      call read_grid(nPoints,File)
+
+      File = "Grids/DatFiles/kslinear_grid.dat"
+
+      call read_grid(File)
       
       y = yVar
       pt = ptVar
@@ -467,18 +467,23 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       end 
 
 
-      subroutine read_grid(nPoints,OutputPath)
-      integer::parameter :: iFile = 11
-      integer:: nPoints
+      subroutine read_grid(OutputPath)
+      implicit none
+      integer, parameter :: iFile = 11
+      integer, parameter :: nPoints = 493
+      integer :: i, j
+      double precision yVar, ptVar, PartonLevelVar
       double precision PartonLevelGrid(nPoints,nPoints)
       double precision ptGrid(nPoints), yGrid(nPoints)
       double precision ent(nPoints + nPoints)
-      char*200 :: OutputPath
+      character*200 :: OutputPath
       
       common/GridArrays/ent,yGrid,ptGrid,PartonLevelGrid
 
-      open(iFile,file=OutputPath,status='old')
-
+c      open(iFile,file=trim(OutputPath),status='old')
+      open(iFile,
+     *  file="Grids/DatFiles/kslinear_grid.dat",status="old")
+      
       read(iFile,*)
       do i = 1, nPoints
             do j = 1, nPoints
@@ -488,7 +493,7 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       PartonLevelGrid(i,j) = PartonLevelVar
             end do
       end do
-
+      close(iFile)
       do i = 1, nPoints
          ent(i) = yGrid(i)
       end do 
@@ -497,7 +502,7 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
          ent(nPoints + j) = ptGrid(j)
       end do
 
-      end 
+      end subroutine
 
 
 

@@ -30,8 +30,8 @@ c     ------------------------------------------------------------------
       pt_min = dlog10(1.d0)
       pt_max = dlog10(150.d0)
 
-      dy = (y_max - y_min)/(nPoints-1)
-      dpt = (pt_max - pt_min)/(nPoints-1)
+      dy = (y_max - y_min)/(nPoints)
+      dpt = (pt_max - pt_min)/(nPoints)
 
 c     ==================================================================
 c     Output files

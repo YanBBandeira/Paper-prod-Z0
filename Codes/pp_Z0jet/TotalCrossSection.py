@@ -2,11 +2,14 @@ import vegas
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 
+<<<<<<< HEAD
 
 
 
 
 
+=======
+>>>>>>> eb44b3a (Refactor TotalCrossSection.py: Move main function to the end, update grid interpolation filename, and enhance histogram output structure)
 # ===========================
 # Parameters (module)
 # ===========================
@@ -55,18 +58,20 @@ def read_grid(nPoints, filename):
 
     return yGrid, ptGrid, PartonLevelGrid
 
-def InterpolateGrid(y, pt, filename='kslinear_grid.dat', nPoints=5000):
+def InterpolateGrid(y, pt, filename="Grids/Dat-Files/kslinear_grid.dat", nPoints=500):
     yGrid, ptGrid, PartonLevelGrid = read_grid(nPoints, filename)
     # Cria interpolador
     interpolator = RegularGridInterpolator((yGrid, ptGrid), PartonLevelGrid)
     value = interpolator([[y, pt]])[0]
+#    print(f"Interpolated value at y={y}, pt={pt}: {value}")
     return value
+
 
 # ===========================
 # IntegrandSigma Subroutine
 # ===========================
 def IntegrandSigma(x):
-
+    
     pt2Var_max = 150**2
     pt2Var_min = 1e-2**2
     m2Var_min = 60**2
@@ -76,8 +81,13 @@ def IntegrandSigma(x):
     yVar     = yVar_min + (yVar_max - yVar_min)*x[0]
     m2Var    = m2Var_min + (m2Var_max - m2Var_min)*x[1]
     pt2Var   = pt2Var_min + (pt2Var_max - pt2Var_min)*x[2]
+<<<<<<< HEAD
     jac = (yVar_max - yVar_min)*(m2Var_max - m2Var_min)*(pt2Var_max - pt2Var_min)   
     physicalWgt = jac#vegas.RAvg*jac/vegas.itermax
+=======
+    jac = (yVar_max - yVar_min)*(m2Var_max - m2Var_min)*(pt2Var_max - pt2Var_min) 
+    physicalWgt = jac
+>>>>>>> eb44b3a (Refactor TotalCrossSection.py: Move main function to the end, update grid interpolation filename, and enhance histogram output structure)
     
     global x2, pt, x1, M
     M2 = m2Var
@@ -139,7 +149,11 @@ def IntegrandSigma(x):
             hist['sig_m'][im] += SigTot * physicalWgt / dm
             
             
+<<<<<<< HEAD
       
+=======
+        
+>>>>>>> eb44b3a (Refactor TotalCrossSection.py: Move main function to the end, update grid interpolation filename, and enhance histogram output structure)
     
     vegasIntegrand = jac*SigTot
 
@@ -215,5 +229,82 @@ def main():
     
 if __name__ == "__main__":
     main()
+
+def main():
+    global hist, bin_params
+    # Binning parameters
+    ny = 100
+    y_min = 2.0
+    y_max = 4.5
+    dy = (y_max - y_min) / ny
+
+    npt = 100
+    pt_min = 0.0
+    pt_max = 150.0
+    dpt = (pt_max - pt_min) / npt
+
+    nm = 100
+    m_min = 60.0
+    m_max = 120.0
+    dm = (m_max - m_min) / nm
+
+    bin_params = {
+        'ny': ny, 'y_min': y_min, 'y_max': y_max, 'dy': dy,
+        'npt': npt, 'pt_min': pt_min, 'pt_max': pt_max, 'dpt': dpt,
+        'nm': nm, 'm_min': m_min, 'm_max': m_max, 'dm': dm
+    }
+
+    # Histograms
+    hist = {
+        'iDoHist': 0,
+        'sig_y': np.zeros(ny),
+        'sig_pt': np.zeros(npt),
+        'sig_m': np.zeros(nm),
+        'sig_ypt1': np.zeros(npt),
+        'sig_ypt2': np.zeros(npt),
+        'sig_ypt3': np.zeros(npt),
+        'sig_ypt4': np.zeros(npt),
+        'sig_ypt5': np.zeros(npt)
+    }
+    
+    integ = vegas.Integrator([[0, 1], [0, 1],[0, 1]])
+    hist['iDoHist'] == 0
+    integ(IntegrandSigma, nitn=10, neval=100)
+    
+    hist['iDoHist'] == 1
+    result = integ(IntegrandSigma, nitn=10, neval=100)
+    print('Resultado:', result.mean, '+-', result.sdev)
+    
+    # Fill histograms with iDoHist=1
+    # Output results
+    with open("Output/dsig_dy.dat", 'w') as f:
+        sum_y = 0.0
+        for iy in range(ny):
+            y = y_min + iy * dy - dy / 2.0
+            f.write(f"{y:8.4f} {hist['sig_y'][iy]:12.4e}\n")
+            sum_y += hist['sig_y'][iy] * dy
+        print(f"sum_y: {sum_y:.6e}")
+
+    with open("Output/dsig_dpt.dat", 'w') as f:
+        sum_pt = 0.0
+        for ipt in range(npt):
+            pt = pt_min + ipt * dpt - dpt / 2.0
+            f.write(f"{pt:8.4f} {hist['sig_pt'][ipt]:12.4e}\n")
+            sum_pt += hist['sig_pt'][ipt] * dpt
+        print(f"sum_pt: {sum_pt:.6e}")
+
+    with open("Output/dsig_dm.dat", 'w') as f:
+        for im in range(nm):
+            m = m_min + im * dm - dm / 2.0
+            f.write(f"{m:8.4f} {hist['sig_m'][im]:12.4e}\n")
+    
+    
+if __name__ == "__main__":
+    main()
+
+
+
+
+
 
 
