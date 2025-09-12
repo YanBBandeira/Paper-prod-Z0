@@ -268,7 +268,8 @@ c     =================================================================
       COMMON/xbj/x2
       COMMON/hadronicVariables/pt, x1, M
 
-      EXTERNAL DileptonDecay,IntegrandHadronicCrossSection,DGAUSS
+      EXTERNAL DileptonDecay,IntegrandHadronicCrossSection,
+     *         DGAUSS, InterpolateGrid
       
       y  = yVar
       pt = dsqrt(pt2Var)
@@ -286,7 +287,7 @@ ctest      WRITE(*,*) 'Kinematics: ', y, pt, M, x1, x2
 
 ctest      write(*,*) 'Pre-integral: ', varJacobian, preIntegral
 
-      HadronicCrossSection =      
+      HadronicCrossSection =  InterpolateGrid(y,pt)  
      & DGAUSS(IntegrandHadronicCrossSection, 0.d0, 1.d0, 1.d-4)
       Result = preIntegral*DileptonDecay(M)*HadronicCrossSection
 
@@ -432,6 +433,71 @@ c     =================================================================
 ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       RETURN 
       END 
+
+
+
+      function InterpolateGrid(yVar,ptVar)
+      integer::parameter:: nPoints = 500
+      integer::parameter:: narg=2
+      dimension nent(2), arg(narg)
+      common/GridArrays/ent,yGrid,ptGrid,PartonLevelGrid
+
+      double precision PartonLevelGrid(nPoints,nPoints)
+      double precision ptGrid(nPoints), yGrid(nPoints)
+      double precision ent(nPoints + nPoints)
+      double precision y, pt, yVar, ptVar,InterpolateGrid
+      char*200 :: File
+      
+      File = '/Grids/Dat-Files/kslinear_grid.dat'
+
+      call read_grid(nPoints,File)
+      
+      y = yVar
+      pt = ptVar
+
+
+      nent(1) = nPoints
+      nent(2) = nPoints
+
+      arg(1) = y
+      arg(2) = pt
+
+      InterpolateGrid = DFINT(narg,arg,nent,ent,PartonLevelGrid)
+      return
+      end 
+
+
+      subroutine read_grid(nPoints,OutputPath)
+      integer::parameter :: iFile = 11
+      integer:: nPoints
+      double precision PartonLevelGrid(nPoints,nPoints)
+      double precision ptGrid(nPoints), yGrid(nPoints)
+      double precision ent(nPoints + nPoints)
+      char*200 :: OutputPath
+      
+      common/GridArrays/ent,yGrid,ptGrid,PartonLevelGrid
+
+      open(iFile,file=OutputPath,status='old')
+
+      read(iFile,*)
+      do i = 1, nPoints
+            do j = 1, nPoints
+      read(iFile,*) yVar, ptVar, PartonLevelVar
+      yGrid(i) = yVar
+      ptGrid(j) = ptVar
+      PartonLevelGrid(i,j) = PartonLevelVar
+            end do
+      end do
+
+      do i = 1, nPoints
+         ent(i) = yGrid(i)
+      end do 
+
+      do j = 1, nPoints
+         ent(nPoints + j) = ptGrid(j)
+      end do
+
+      end 
 
 
 
