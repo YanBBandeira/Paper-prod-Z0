@@ -138,7 +138,7 @@ c     =================================================================
       pt2 = pt*pt
       M2 = M*M
 
-      hs = dsqrt(pt2 + (1.d0 - xf)*M2)
+      hs = dsqrt(pt2 + (1.d0 - x1)*M2)
 
 ctest      write(*,*) 'Hadronic variables: ', pt, x1, M, z, xf, hs
 
