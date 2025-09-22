@@ -12,13 +12,14 @@
       
       program PL_grids_kslinear
       implicit none
-      integer, parameter :: nPoints=500
+      integer, parameter :: nPoints = 20
 c     ------------------------------------------------------------------
       double precision y(nPoints), y_min, y_max, dy 
       double precision pt(nPoints), pt_min, pt_max, dpt
+      double precision m(nPoints), m_min, m_max, dm
       double precision partonLevelSigma,FuncPartonLevelSigma 
 
-      integer iy, ipt, iset
+      integer iy, ipt,im, iset
       external FuncPartonLevelSigma
       
       iset = 400001 !KS-2013-linear 
@@ -29,15 +30,18 @@ c     ------------------------------------------------------------------
       y_max = 5.d0
       pt_min = dlog10(1.d0)
       pt_max = dlog10(150.d0)
+      m_min = 50.d0
+      m_max = 200.d0
 
       dy = (y_max - y_min)/(nPoints)
       dpt = (pt_max - pt_min)/(nPoints)
+      dm = (m_max - m_min)/(nPoints)
 
 c     ==================================================================
 c     Output files
 c     ==================================================================
 
-      open(unit=11,file="Dat-Files/kslinear_grid.dat",status='unknown')
+      open(unit=11,file="DatFiles/tst_grid.dat",status='unknown')
 
 c     ==================================================================
 c     Grid loop
@@ -47,41 +51,49 @@ c     ==================================================================
       
             do ipt = 1,nPoints
       pt(ipt) = 10.d0**(pt_min + (ipt-1)*dpt) - 0.9d0
-      partonLevelSigma = FuncPartonLevelSigma(pt(ipt),y(iy))
+                  do im = 1,nPoints
+      m(im) = m_min + (im-1)*dm
+      partonLevelSigma = FuncPartonLevelSigma(y(iy),pt(ipt),m(im))
 
-      write(*,*) 'Computing point: y = ', y(iy), ' pt = ', pt(ipt)
-ctest      write(*,*)'Parton level cross section (pb/GeV): ',partonLevelSigma
-      write(11,100) y(iy), pt(ipt), partonLevelSigma
+
+      write(*,*) '-------------------------------------'
+      write(*,*) 'Computing grid point number ', iy, ipt, im,
+     *  ' of ', nPoints, nPoints, nPoints
+      write(*,*) 'Computing point: y = ', y(iy), ' pt = ', pt(ipt),
+     *  ' m = ', m(im)  
+      write(*,*)'Parton level cross section (pb/GeV): ',partonLevelSigma
+      write(11,*) y(iy), pt(ipt), m(im), partonLevelSigma
+                  end do
             end do 
       end do
 100   format(2x,6(E10.4,2x))
       close(11)
-
       end program PL_grids_kslinear
 
 c     ==================================================================
 c     parton level cross section function
 c     ==================================================================
-      function FuncPartonLevelSigma(ptVar,yVar)
+      function FuncPartonLevelSigma(yVar,ptVar,mVar)
       use parameters
-      double precision FuncPartonLevelSigma, ptVar, yVar
+      double precision FuncPartonLevelSigma, ptVar, yVar, mVar
       double precision y, pt, pt2, M2, x1, x2, M
       double precision result, units,IntegrandHadronicCrossSection
+      double precision dgauss
       common/xbj/x2
-      common/hadronicVariables/pt, x1
+      common/hadronicVariables/pt, x1, m
       external IntegrandHadronicCrossSection, dgauss 
       
       pt = ptVar
       y  = yVar
 
-      M  = mz
-      M2 = mz**2.d0
+      M  = mVar
+      M2 = M**2.d0
       pt2 = pt**2.d0
 
-      x1 = (DSQRT(M2 + pt**2.d0)/RS)*DEXP(y)
-      x2 = (DSQRT(M2 + pt**2.d0)/RS)*DEXP(-y)
+      x1 = (DSQRT(M2 + pt2)/RS)*DEXP(y)
+      x2 = (DSQRT(M2 + pt2)/RS)*DEXP(-y)
 
-      result=dgauss(IntegrandHadronicCrossSection,0.01d0,1.d0,1.d-4) 
+      result = dgauss(IntegrandHadronicCrossSection,x1,1.d0,1.d-4) 
               
     
       units = 0.389d9 !GeV-2 to pb
@@ -116,33 +128,34 @@ c     =================================================================
       DOUBLE PRECISION mf, gfv, gfa
       
 
-      COMMON/hadronicVariables/pt, x1
+      COMMON/hadronicVariables/pt, x1, m
 
       EXTERNAL InitPDFsetByName, evolvePDF
 
-      M = mz
+      
       z = alf 
       xf = x1/z 
       pt2 = pt*pt
       M2 = M*M
 
-      hs = dsqrt(pt2 + (1.d0 - xf)**2.d0*M2)
+      hs = dsqrt(pt2 + (1.d0 - xf)*M2)
 
 ctest      write(*,*) 'Hadronic variables: ', pt, x1, M, z, xf, hs
 
       
       if(hs.le.1.3d0) then
             Q = 0.d0 
+            write(*,*) 'Q less than 1.3 GeV, Q = ', Q
       else
             Q = hs 
       end if
-      if(x1.le.1.d0)then 
+      if(xf.le.1.d0)then 
 c     ------------------------------------------------------------------
 c     This is the parton distribution function (PDF) initialization
 c     ------------------------------------------------------------------   
       name = 'CT10nlo' ! This is the PDF set name
       call InitPDFsetByName(name)
-      call evolvePDF(xf,Q,f)
+      call evolvePDF(xf,q**2.d0,f)
 
       u = f(2)        !u
       d = f(1)        !d
@@ -226,7 +239,7 @@ c     ------------------------------------------------------------------
 
 ctest      write(*,*)'Hadronic cross section:',IntegrandHadronicCrossSection
       ELSE
-
+ctest      write(*,*) 'xf greater than 1, xf = ', xf
       IntegrandHadronicCrossSection = 0.d0 
       END IF 
       RETURN

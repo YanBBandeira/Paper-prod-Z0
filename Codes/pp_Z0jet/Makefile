@@ -10,8 +10,8 @@ LIBS = -lTMDlib -lapfelxx -lgsl -lgslcblas -lm `lhapdf-config --cflags --libs` -
 #LHAPDFS_LIBs = `lhapdf-config --cflags --libs` -lstdc++
 
 # Executáveis e seus arquivos fonte
-EXEC1 = kslinear
-SRC1 = sigtot_pp_Z0.f DADMUL.f dgauss.f vegas11.f
+EXEC1 = sigtot_kslinear
+SRC1 = sigtot_pp_Z0.f DADMUL.f dgauss.f vegas11.f dfint.f
 
 #EXEC2 = ksnonlinear
 #SRC2 = Z0-ksnonlinear.f DADMUL.f dgauss.f CT14Pdf.f
