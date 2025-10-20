@@ -73,17 +73,17 @@ copt      call TMDset(iset)
 c     =================================================================
 c     BINNING PARAMETERS (stored in common block)
 c     =================================================================
-      ny = 40                      
+      ny = 60                      
       y_min =  2.0d0
       y_max =  4.5d0
       dy = (y_max-y_min)/ny
 c     -----------------------------------------------------------------
-      npt = 40             
+      npt = 60             
       pt_min = 0.d0
       pt_max = 150.d0
       dpt = (pt_max-pt_min)/npt
 c     -----------------------------------------------------------------      
-      nm = 40 
+      nm = 60 
       m_min = 60.d0
       m_max = 120.d0
       dm = (m_max-m_min)/nm
@@ -92,20 +92,20 @@ c     =================================================================
 c     probing of the phase space
 c     =================================================================
       nprn=0
-      ncall=1500 !0
-      itmx=10 !10 
+      ncall=10000 !0
+      itmx=10 
       iDoHist=0
-      call VEGAS(6,vegasIntegrand,avgi,sd,chi2a)
+      call VEGAS(3,vegasIntegrand,avgi,sd,chi2a)
 
 c     =================================================================
 c     INTEGRATION  ! VEGAS(n,sigma,avgi,sd,chi2a) n=7 - dimensions
 c     =================================================================
 
       print*, avgi, "+-", sd            
-      ncall=1500 !0             
-      itmx=10 !10                                                  
+      ncall=10000 !0             
+      itmx=5 !10                                                  
       iDoHist=1
-      call VEGAS1(6,vegasIntegrand,avgi,sd,chi2a)
+      call VEGAS1(3,vegasIntegrand,avgi,sd,chi2a)
 
       print*, avgi, "+-", sd
 c     =================================================================
@@ -168,7 +168,8 @@ c     -----------------------------------------------------------------
       enddo
 
 101   FORMAT(1x,f8.4,1x,e12.4)
-      END
+      END PROGRAM
+       
  
 c     =================================================================
 c     =================================================================
@@ -179,16 +180,18 @@ c     =================================================================
       FUNCTION vegasIntegrand(x,vegasWgt)
       IMPLICIT NONE
 
-      DOUBLE PRECISION vegasIntegrand, x(6), vegasWgt
-      DOUBLE PRECISION yVar, m2Var, pt2Var, phi
-      DOUBLE PRECISION yVar_min, yVar_max, m2Var_min, m2Var_max
-      DOUBLE PRECISION pt2Var_min, pt2Var_max, jac
+      DOUBLE PRECISION vegasIntegrand, x(3), vegasWgt
+      DOUBLE PRECISION ypVar, ymVar, phip, phim
+      DOUBLE PRECISION ypVar_min, ypVar_max
+      DOUBLE PRECISION ymVar_min, ymVar_max, jac
       DOUBLE PRECISION yp_min, yp_max, ym_min, ym_max
       DOUBLE PRECISION sigTot, physicalWgt, pi
       DOUBLE PRECISION ktp, ktm, ktp_min, ktp_max
       DOUBLE PRECISION ktm_min, ktm_max
-      DOUBLE PRECISION phip, phim
       DOUBLE PRECISION kp_min, kp_max, km_min, km_max
+      DOUBLE PRECISION pt2Var, pt2Var_min, pt2Var_max
+      DOUBLE PRECISION m2Var, m2Var_min, m2Var_max
+      DOUBLE PRECISION yVar, yVar_min, yVar_max
 c     -----------------------------------------------------------------
       integer ncall,itmx,nprn,ndev,it,ndo
       integer ndmx,mds
@@ -203,14 +206,32 @@ c     =================================================================
 c     PHASE SPACE
 c     =================================================================
       pi  = 4.d0*datan(1.d0)  
-      kp_max = 200.d0
-      kp_min = 20.d0
-      km_max = 200.d0 
-      km_min = 20.d0
-      m2Var_min = 60.d0**2.d0
-      m2Var_max = 120.d0**2.d0
-      yVar_max = 4.5d0
-      yVar_min = 2.0d0
+!       kp_max = 200.d0
+!       kp_min = 20.d0
+!       km_max = 200.d0 
+!       km_min = 20.d0
+!       ypVar_max = 4.5d0
+!       ypVar_min = 2.0d0
+!       ymVar_max = 4.5d0 
+!       ymVar_min = 2.d0
+
+!       kp_max = 120.d0
+!       kp_min = 20.d0
+!       km_max = 120.d0 
+!       km_min = 20.d0
+      
+! c     -----------------------------------------------------------------
+!       ypVar   = yp_min + (yp_max - yp_min)*x(1)
+!       ymVar   = ym_min + (ym_max - ym_min)*x(2)
+!       ktp   = kp_min + (kp_max - kp_min)*x(3)
+!       ktm   = km_min + (km_max - km_min)*x(4)
+!       phip = 2.d0*pi*x(5)
+!       phim = 2.d0*pi*x(6)
+! c     =================================================================
+! c     jacobian: x(n) ----> phase space
+! c     =================================================================
+!       jac = (yp_max - yp_min)*(ym_max - ym_min)*(kp_max - kp_min)
+!      &      *(km_max - km_min)*((2.d0*pi)**2.d0)
 
       ! TODO - Isso provavelmente está errado, estou misturando integração
       ! em pt com integração em kt. Verificar limites corretos.
@@ -220,24 +241,27 @@ c     =================================================================
       ! Logo, não sei como fazer as conexões e afins!
       
 c     -----------------------------------------------------------------
-      yVar     = yVar_min + (yVar_max - yVar_min)*x(1)
-      m2Var    = m2Var_min + (m2Var_max - m2Var_min)*x(2)
-      ktp   = kp_min + (kp_max - kp_min)*x(3)
-      ktm   = km_min + (km_max - km_min)*x(4)
-      phip = 2.d0*pi*x(5)
-      phim = 2.d0*pi*x(6)
-      
+      pt2Var_min = 0.d0**2.d0
+      pt2Var_max = 200.d0**2.d0
+      m2Var_min = 60.d0**2.d0
+      m2Var_max = 120.d0**2.d0
+      yVar_min = 2.0d0
+      yVar_max = 4.5d0
+
+      yVar  = yVar_min + (yVar_max - yVar_min)*x(1)
+      pt2Var = pt2Var_min + (pt2Var_max - pt2Var_min)*x(2)
+      m2Var = m2Var_min + (m2Var_max - m2Var_min)*x(3)
       
 c     =================================================================
 c     jacobian: x(n) ----> phase space
 c     =================================================================
-      jac = (yVar_max - yVar_min)*(m2Var_max - m2Var_min)     
-     &      *(kp_max - kp_min)*(km_max - km_min)*((2.d0*pi)**2.d0)
+      jac = (yVar_max - yVar_min)*(pt2Var_max - pt2Var_min)
+     &      *(m2Var_max - m2Var_min)
 
       physicalWgt = vegasWgt*jac/itmx
-      CALL IntegrandSigma(sigTot,yVar,m2Var,
-     &      ktp,ktm,phip,phim,physicalWgt)
-
+copt      CALL IntegrandSigma(sigTot,ypVar,ymVar,
+copt     &      ktp,ktm,phip,phim,physicalWgt)
+      CALL IntegrandSigma(sigTot,yVar,pt2Var,m2Var,physicalWgt)
       vegasIntegrand = jac*sigTot
 ctest      write(*,*) 'Integrand: ', vegasIntegrand, sigTot, jac
       RETURN 
@@ -248,21 +272,26 @@ c     =================================================================
 c     =================================================================
 
 
-      SUBROUTINE IntegrandSigma(sigTot,yVar,m2Var,ktpVar,ktmVar,
-     & phipVar,phimVar,physicalWgt) 
+copt      SUBROUTINE IntegrandSigma(sigTot,ypVar,ymVar,ktpVar,ktmVar,
+copt     & phipVar,phimVar,physicalWgt) 
+      SUBROUTINE IntegrandSigma(sigTot,yVar,pt2Var,m2Var,physicalWgt)
       USE parameters
       IMPLICIT NONE
 
+      double precision yVar, pt2Var, m2Var
       DOUBLE PRECISION InterpolateGrid
-      DOUBLE PRECISION sigTot,yVar,m2Var,pt2Var,phipVar,phimVar,
-     *                 ktpVar,ktmVar,physicalWgt
-      DOUBLE PRECISION varJacobian, preIntegral,Result,units,x1,x2
+      DOUBLE PRECISION sigTot,ypVar,ymVar,phipVar,phimVar,
+     &                 ktpVar,ktmVar,physicalWgt
+      DOUBLE PRECISION varJacobian, preIntegral,Result,x1,x2
       DOUBLE PRECISION HadronicCrossSection, DileptonDecay
       DOUBLE PRECISION M2, DGAUSS, deltaY
       DOUBLE PRECISION ktp, ktm, ktp2, ktm2
       DOUBLE PRECISION ktpx, ktpy, ktmx, ktmy
       DOUBLE PRECISION ptx, pty, pt2
-      DOUBLE PRECISION phip, phim
+      DOUBLE PRECISION phip, phim, yp, ym
+      DOUBLE PRECISION mp, mm
+      DOUBLE PRECISION mperp_p, mperp_m, mperp_p2, mperp_m2
+      DOUBLE PRECISION xp, xm, xf, mVar
       
 
 c     =================================================================
@@ -293,19 +322,39 @@ c     =================================================================
 
       EXTERNAL DileptonDecay,DGAUSS, InterpolateGrid
              
+copt      mp = 105.6d-3 !GeV
+copt      mm = 105.6d-3 !GeV
 
-      phip = phipVar
-      phim = phimVar
+copt      phip = phipVar
+copt      phim = phimVar
 
-      ktp = ktpVar
-      ktm = ktmVar
+copt      ktp = ktpVar
+copt      ktm = ktmVar
 
-      ktp2 = ktp**2.d0 
-      ktm2 = ktm**2.d0
-      ktpx = ktp*DCOS(phip)
-      ktpy = ktp*DSIN(phip)
-      ktmx = ktm*DCOS(phim)
-      ktmy = ktm*DSIN(phim)
+copt      yp = ypVar
+ctop      ym = ymVar
+
+copt      ktp2 = ktp**2.d0 
+copt      ktm2 = ktm**2.d0DileptonDecay
+copt      ktpx = ktp*DCOS(phip)
+copt      ktpy = ktp*DSIN(phip)
+copt      ktmx = ktm*DCOS(phim)
+copt      ktmy = ktm*DSIN(phim)
+
+copt      mperp_p2 = ktpx**2.d0 + ktpy**2.d0 + mp**2.d0
+copt      mperp_m2 = ktmx**2.d0 + ktmy**2.d0 + mm**2.d0
+     
+copt      mperp_p = dsqrt(mperp_p2)
+copt      mperp_m = dsqrt(mperp_m2)
+     
+c     -----------------------------------------------------------------
+copt      xp = (ktp/rs)*DEXP(yp)
+copt      xm = (ktm/rs)*DEXP(ym)
+copt      xf = xp + xm
+
+ctest      write(*,*) 'phip, phim: ', phip, phim
+ctest      write(*,*) 'yp, ym: ', yp, ym
+ctest      write(*,*) 'xp, xm, xf: ', xp, xm, xf
 
 ctest      write(*,*) 'ktp, ktm, phip, phim, pt: ', ktp,ktm,phip,phim,pt
 
@@ -313,47 +362,61 @@ ctest      write(*,*) 'ktp, ktm, phip, phim, pt: ', ktp,ktm,phip,phim,pt
 c     ==================================================================
 c     Boson variables
 c     -----------------------------------------------------------------
-      ptx = ktpx + ktmx
-      pty = ktpy + ktmy
-      pt  = DSQRT(ptx**2.d0 + pty**2.d0)
-      pt2 = pt**2.d0
+copt      ptx = ktpx + ktmx
+copt      pty = ktpy + ktmy
+copt      pt  = DSQRT(ptx**2.d0 + pty**2.d0)
+copt      pt2 = pt**2.d0
+      pt = DSQRT(pt2Var)
+      pt2 = pt2Var
+      y = yVar
+      m2 = m2Var
+copt      y  = DLOG(xf*(rs/DSQRT(pt2 + M2)))
 
-      y  = yVar
-
-
-      M2 = m2Var
-      M  = DSQRT(m2Var)
 
       x1 = (DSQRT(M2 + pt**2.d0)/RS)*DEXP(y)
       x2 = (DSQRT(M2 + pt**2.d0)/RS)*DEXP(-y)
 
+copt      x1 = (ktp/rs)*DEXP(yp) + (ktm/rs)*DEXP(ym)
+copt      x2 = (ktp/rs)*DEXP(-yp) + (ktm/rs)*DEXP(-ym)
+
+
+copt      m2 = mperp_p**2.d0 + mperp_m**2.d0 
+copt     &       + 2.d0*mperp_p*mperp_m*DCOSH(yp - ym) - pt2
+
 ctest      WRITE(*,*) 'Kinematics: ', y, pt, M, x1, x2
+ctest      write(*,*) 'M2, M, x1, x2: ', m2,mVar, x1, x2
+     
+      mVar = DSQRT(m2) 
 
-      varJacobian = (2.d0/rs)*DSQRT(m2Var + pt2Var)*DCOSH(yVar)
+      varJacobian = (2.d0/rs)*DSQRT(M2 + pt2)*DCOSH(y)
       preIntegral = (x1/(x1 + x2))*varJacobian
-
+      
 ctest      write(*,*) 'Pre-integral: ', varJacobian, preIntegral
 
-      HadronicCrossSection =  InterpolateGrid(y,pt,M)  
-      Result = preIntegral*DileptonDecay(M)*HadronicCrossSection
 
-      SigTot = Result
-
-ctest      write(*,*) 'Sigma total: ', SigTot, HadronicCrossSection
-      
 c     =================================================================
 c     Delimiting boundaries
-c     -----------------------------------------------------------------
+c     -----------------------------------------------------------------f1
       if(x1.gt.1.d0.or.x2.gt.1.d0) then
             SigTot = 0.d0
             go to 101
       endif
 c     -----------------------------------------------------------------
-      if(M.lt.60.d0.or.M.gt.120.d0) then
+      if(mVar.lt.60.d0.or.mVar.gt.120.d0) then
+ctest            write(*,*) 'fora do range de M: ', mVar
             SigTot = 0.d0
             go to 101
       endif
-     
+      
+
+      HadronicCrossSection =  InterpolateGrid(y,pt,mVar)  
+      Result = preIntegral*DileptonDecay(Mvar)*HadronicCrossSection
+      
+copt      SigTot = xp*xm*ktp*ktm*Result
+      SigTot = Result
+ctest      write(*,*) 'Sigma total: ', SigTot, HadronicCrossSection
+ctest      write(*,*) sigTot, Result
+
 c     =================================================================
 c     indices
 c     -----------------------------------------------------------------
@@ -361,7 +424,7 @@ c     -----------------------------------------------------------------
 c     -----------------------------------------------------------------
       ipt = idint((pt-pt_min)/dpt) + 1
 c     -----------------------------------------------------------------
-      im  = idint((M-m_min)/dm) + 1
+      im  = idint((mVar-m_min)/dm) + 1
 c     -----------------------------------------------------------------
 ctest      write(*,*) iy, ipt, iDoHist, dy,dpt
 c      write(*,*)
@@ -435,7 +498,7 @@ c     -----------------------------------------------------------------
       
 
 c     -----------------------------------------------------------------
-      if(M.gt.m_min.and.M.lt.m_max) then
+      if(mVar.gt.m_min.and.mVar.lt.m_max) then
             if(im.gt.0.and.im.le.nm) then
                   sig_m(im) = sig_m(im) + SigTot*physicalWgt/dm
             endif 
@@ -445,26 +508,26 @@ c     -----------------------------------------------------------------
       endif
 c     =================================================================
 101   continue
-      END SUBROUTINE  
+      END   
 
 c     =================================================================
 c     =================================================================
 c     =================================================================
 
-      FUNCTION DileptonDecay(MVar) 
+      FUNCTION DileptonDecay(MVarr) 
       USE parameters
       IMPLICIT NONE
-      DOUBLE PRECISION DileptonDecay,MVar, M, M2, MZ2 
+      DOUBLE PRECISION DileptonDecay,MVarr, M, M2, MZ2 
       DOUBLE PRECISION DecayWidth, Branch, InvariantMassDist, Result
 
-      M = MVar
+      M = MVarr
       M2 = M*M
       Mz2 = Mz*Mz
 
       DecayWidth = ((alfem*M)/(6.d0*(dsin(2.d0*aw)**2.d0)))*(
      & (160.d0/3.d0)*(dsin(aw)**4.d0) - 40.d0*(dsin(aw)**2.d0) + 21.d0)
 
-      Branch = 3.3662d0/100.d0
+      Branch = 3.3d0/100.d0
      
       InvariantMassDist = (1.d0/pi)*
      & ((M*DecayWidth)/((M2 - Mz2)**2.d0 + (M*DecayWidth)**2.d0))
@@ -480,11 +543,11 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
 
       function InterpolateGrid(yVar,ptVar,mVar)
       implicit none
-      integer, parameter :: nPoints = 20
+      integer, parameter :: nPoints = 15
       integer, parameter :: narg=3
       
-      integer :: nent(3), i, j
-      double precision PartonLevelGrid(nPoints,nPoints,nPoints)
+      integer :: nent(3)
+      double precision PartonL     evelGrid(nPoints,nPoints,nPoints)
       double precision ptGrid(nPoints), yGrid(nPoints), mGrid(nPoints)
       double precision ent(nPoints + nPoints + nPoints), arg(narg)
       double precision y, pt, yVar, ptVar,InterpolateGrid
@@ -492,7 +555,7 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       double precision DFINT
       character*2000 :: File
       
-      common/GridArrays/ent,yGrid,ptGrid,PartonLevelGrid
+      common/GridArrays/ent,yGrid,ptGrid,mGrid,PartonLevelGrid
 
 
       File = "Grids/DatFiles/tst_grid.dat"
@@ -513,7 +576,7 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       arg(3) = m
 
       InterpolateGrid = DFINT(narg,arg,nent,ent,PartonLevelGrid)
-ctest      write(*,*) 'Interpolated value: ', InterpolateGrid, y, pt
+ctest      write(*,*) 'Interpolated value: ', InterpolateGrid, y, pt, m
       return
       end 
 
@@ -521,7 +584,7 @@ ctest      write(*,*) 'Interpolated value: ', InterpolateGrid, y, pt
       subroutine read_grid(OutputPath)
       implicit none
       integer, parameter :: iFile = 11
-      integer, parameter :: nPoints = 20
+      integer, parameter :: nPoints = 15
       integer :: i, j, k
       double precision yVar, ptVar, mVar, PartonLevelVar
       double precision PartonLevelGrid(nPoints,nPoints,nPoints)
@@ -529,7 +592,7 @@ ctest      write(*,*) 'Interpolated value: ', InterpolateGrid, y, pt
       double precision ent(nPoints + nPoints + nPoints)
       character*2000 :: OutputPath
       
-      common/GridArrays/ent,yGrid,ptGrid,PartonLevelGrid
+      common/GridArrays/ent,yGrid,ptGrid,mGrid,PartonLevelGrid
 
       open(iFile,file=trim(OutputPath),status='old')
 c      open(iFile,
@@ -543,8 +606,8 @@ c     *  file="Grids/DatFiles/kslinear_grid.dat",status="old")
       ptGrid(j) = ptVar
       mGrid(k) = mVar
       PartonLevelGrid(i,j,k) = PartonLevelVar
-ctest            write(*,*) 'Reading grid point:', i, j
-ctest            write(*,*) 'Grid', yVar, ptVar, PartonLevelVar
+ctest            write(*,*) 'Reading grid point:', i, j, k
+ctest            write(*,*) 'Grid', yVar, ptVar, mVar, PartonLevelVar
                   end do
             end do
       end do

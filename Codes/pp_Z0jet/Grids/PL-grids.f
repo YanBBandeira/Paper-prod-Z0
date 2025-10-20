@@ -12,7 +12,7 @@
       
       program PL_grids_kslinear
       implicit none
-      integer, parameter :: nPoints = 20
+      integer, parameter :: nPoints = 15
 c     ------------------------------------------------------------------
       double precision y(nPoints), y_min, y_max, dy 
       double precision pt(nPoints), pt_min, pt_max, dpt
@@ -29,7 +29,7 @@ c     ------------------------------------------------------------------
       y_min = 1.d0
       y_max = 5.d0
       pt_min = dlog10(1.d0)
-      pt_max = dlog10(150.d0)
+      pt_max = dlog10(500.d0)
       m_min = 50.d0
       m_max = 200.d0
 
