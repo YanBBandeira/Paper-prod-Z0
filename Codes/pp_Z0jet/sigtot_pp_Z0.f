@@ -206,32 +206,32 @@ c     =================================================================
 c     PHASE SPACE
 c     =================================================================
       pi  = 4.d0*datan(1.d0)  
-!       kp_max = 200.d0
-!       kp_min = 20.d0
-!       km_max = 200.d0 
-!       km_min = 20.d0
-!       ypVar_max = 4.5d0
-!       ypVar_min = 2.0d0
-!       ymVar_max = 4.5d0 
-!       ymVar_min = 2.d0
+      kp_max = 200.d0
+      kp_min = 20.d0
+      km_max = 200.d0 
+      km_min = 20.d0
+      ypVar_max = 4.5d0
+      ypVar_min = 2.0d0
+      ymVar_max = 4.5d0 
+      ymVar_min = 2.d0
 
-!       kp_max = 120.d0
-!       kp_min = 20.d0
-!       km_max = 120.d0 
-!       km_min = 20.d0
+      kp_max = 120.d0
+      kp_min = 20.d0
+      km_max = 120.d0 
+      km_min = 20.d0
       
-! c     -----------------------------------------------------------------
-!       ypVar   = yp_min + (yp_max - yp_min)*x(1)
-!       ymVar   = ym_min + (ym_max - ym_min)*x(2)
-!       ktp   = kp_min + (kp_max - kp_min)*x(3)
-!       ktm   = km_min + (km_max - km_min)*x(4)
-!       phip = 2.d0*pi*x(5)
-!       phim = 2.d0*pi*x(6)
-! c     =================================================================
-! c     jacobian: x(n) ----> phase space
-! c     =================================================================
-!       jac = (yp_max - yp_min)*(ym_max - ym_min)*(kp_max - kp_min)
-!      &      *(km_max - km_min)*((2.d0*pi)**2.d0)
+c     -----------------------------------------------------------------
+      ypVar   = yp_min + (yp_max - yp_min)*x(1)
+      ymVar   = ym_min + (ym_max - ym_min)*x(2)
+      ktp   = kp_min + (kp_max - kp_min)*x(3)
+      ktm   = km_min + (km_max - km_min)*x(4)
+      phip = 2.d0*pi*x(5)
+      phim = 2.d0*pi*x(6)
+c     =================================================================
+c     jacobian: x(n) ----> phase space
+c     =================================================================
+      jac = (yp_max - yp_min)*(ym_max - ym_min)*(kp_max - kp_min)
+     &      *(km_max - km_min)*((2.d0*pi)**2.d0)
 
       ! TODO - Isso provavelmente está errado, estou misturando integração
       ! em pt com integração em kt. Verificar limites corretos.
@@ -240,29 +240,10 @@ c     =================================================================
       ! pp -> mu + muBar + X. São processos diferentes.
       ! Logo, não sei como fazer as conexões e afins!
       
-c     -----------------------------------------------------------------
-      pt2Var_min = 0.d0**2.d0
-      pt2Var_max = 200.d0**2.d0
-      m2Var_min = 60.d0**2.d0
-      m2Var_max = 120.d0**2.d0
-      yVar_min = 2.0d0
-      yVar_max = 4.5d0
-
-      yVar  = yVar_min + (yVar_max - yVar_min)*x(1)
-      pt2Var = pt2Var_min + (pt2Var_max - pt2Var_min)*x(2)
-      m2Var = m2Var_min + (m2Var_max - m2Var_min)*x(3)
-      
-c     =================================================================
-c     jacobian: x(n) ----> phase space
-c     =================================================================
-      jac = (yVar_max - yVar_min)*(pt2Var_max - pt2Var_min)
-     &      *(m2Var_max - m2Var_min)
-
       physicalWgt = vegasWgt*jac/itmx
-copt      CALL IntegrandSigma(sigTot,ypVar,ymVar,
-copt     &      ktp,ktm,phip,phim,physicalWgt)
-      CALL IntegrandSigma(sigTot,yVar,pt2Var,m2Var,physicalWgt)
-      vegasIntegrand = jac*sigTot
+      CALL IntegrandSigma(sigTot,ypVar,ymVar,
+     &      ktp,ktm,phip,phim,physicalWgt)
+
 ctest      write(*,*) 'Integrand: ', vegasIntegrand, sigTot, jac
       RETURN 
       END 
@@ -272,9 +253,8 @@ c     =================================================================
 c     =================================================================
 
 
-copt      SUBROUTINE IntegrandSigma(sigTot,ypVar,ymVar,ktpVar,ktmVar,
-copt     & phipVar,phimVar,physicalWgt) 
-      SUBROUTINE IntegrandSigma(sigTot,yVar,pt2Var,m2Var,physicalWgt)
+      SUBROUTINE IntegrandSigma(sigTot,ypVar,ymVar,ktpVar,ktmVar,
+     & phipVar,phimVar,physicalWgt) 
       USE parameters
       IMPLICIT NONE
 
@@ -322,35 +302,38 @@ c     =================================================================
 
       EXTERNAL DileptonDecay,DGAUSS, InterpolateGrid
              
-copt      mp = 105.6d-3 !GeV
-copt      mm = 105.6d-3 !GeV
+      mp = 105.6d-3 !GeV
+      mm = 105.6d-3 !GeV
 
-copt      phip = phipVar
-copt      phim = phimVar
+      phip = phipVar
+      phim = phimVar
 
-copt      ktp = ktpVar
-copt      ktm = ktmVar
+      ktp = ktpVar
+      ktm = ktmVar
 
-copt      yp = ypVar
-ctop      ym = ymVar
+      yp = ypVar
+      ym = ymVar
 
-copt      ktp2 = ktp**2.d0 
-copt      ktm2 = ktm**2.d0DileptonDecay
-copt      ktpx = ktp*DCOS(phip)
-copt      ktpy = ktp*DSIN(phip)
-copt      ktmx = ktm*DCOS(phim)
-copt      ktmy = ktm*DSIN(phim)
+      ktp2 = ktp**2.d0 
+      ktm2 = ktm**2.d0DileptonDecay
+      ktpx = ktp*DCOS(phip)
+      ktpy = ktp*DSIN(phip)
+      ktmx = ktm*DCOS(phim)
+      ktmy = ktm*DSIN(phim)
 
-copt      mperp_p2 = ktpx**2.d0 + ktpy**2.d0 + mp**2.d0
-copt      mperp_m2 = ktmx**2.d0 + ktmy**2.d0 + mm**2.d0
+      mperp_p2 = ktpx**2.d0 + ktpy**2.d0 + mp**2.d0
+      mperp_m2 = ktmx**2.d0 + ktmy**2.d0 + mm**2.d0
      
-copt      mperp_p = dsqrt(mperp_p2)
-copt      mperp_m = dsqrt(mperp_m2)
+      mperp_p = dsqrt(mperp_p2)
+      mperp_m = dsqrt(mperp_m2)
+
+      m2 = mperp_p**2.d0 + mperp_m**2.d0 
+     &       + 2.d0*mperp_p*mperp_m*DCOSH(yp - ym) - pt2
      
 c     -----------------------------------------------------------------
-copt      xp = (ktp/rs)*DEXP(yp)
-copt      xm = (ktm/rs)*DEXP(ym)
-copt      xf = xp + xm
+      xp = (ktp/rs)*DEXP(yp)
+      xm = (ktm/rs)*DEXP(ym)
+      xf = xp + xm
 
 ctest      write(*,*) 'phip, phim: ', phip, phim
 ctest      write(*,*) 'yp, ym: ', yp, ym
@@ -362,31 +345,29 @@ ctest      write(*,*) 'ktp, ktm, phip, phim, pt: ', ktp,ktm,phip,phim,pt
 c     ==================================================================
 c     Boson variables
 c     -----------------------------------------------------------------
-copt      ptx = ktpx + ktmx
-copt      pty = ktpy + ktmy
-copt      pt  = DSQRT(ptx**2.d0 + pty**2.d0)
-copt      pt2 = pt**2.d0
+      ptx = ktpx + ktmx
+      pty = ktpy - ktmy
+      pt  = DSQRT(ptx**2.d0 + pty**2.d0)
+      pt2 = pt**2.d0
       pt = DSQRT(pt2Var)
-      pt2 = pt2Var
-      y = yVar
-      m2 = m2Var
-copt      y  = DLOG(xf*(rs/DSQRT(pt2 + M2)))
+
+
+      y  = DLOG(xf*(rs/DSQRT(pt2 + M2)))
 
 
       x1 = (DSQRT(M2 + pt**2.d0)/RS)*DEXP(y)
       x2 = (DSQRT(M2 + pt**2.d0)/RS)*DEXP(-y)
 
-copt      x1 = (ktp/rs)*DEXP(yp) + (ktm/rs)*DEXP(ym)
-copt      x2 = (ktp/rs)*DEXP(-yp) + (ktm/rs)*DEXP(-ym)
 
 
-copt      m2 = mperp_p**2.d0 + mperp_m**2.d0 
-copt     &       + 2.d0*mperp_p*mperp_m*DCOSH(yp - ym) - pt2
+      
 
-ctest      WRITE(*,*) 'Kinematics: ', y, pt, M, x1, x2
-ctest      write(*,*) 'M2, M, x1, x2: ', m2,mVar, x1, x2
+      
      
       mVar = DSQRT(m2) 
+
+      WRITE(*,*) 'Kinematics: ', y, pt, M, x1, x2
+      write(*,*) 'M2, M, x1, x2: ', m2,mVar, x1, x2
 
       varJacobian = (2.d0/rs)*DSQRT(M2 + pt2)*DCOSH(y)
       preIntegral = (x1/(x1 + x2))*varJacobian
@@ -396,7 +377,11 @@ ctest      write(*,*) 'Pre-integral: ', varJacobian, preIntegral
 
 c     =================================================================
 c     Delimiting boundaries
-c     -----------------------------------------------------------------f1
+c     -----------------------------------------------------------------
+      if(y.lt.2.d0.or.y.gt.4.5d0)then
+            go to 101
+      endif
+
       if(x1.gt.1.d0.or.x2.gt.1.d0) then
             SigTot = 0.d0
             go to 101

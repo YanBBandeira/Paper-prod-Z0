@@ -1,310 +1,282 @@
-import vegas 
 import numpy as np
+import vegas
 from scipy.interpolate import RegularGridInterpolator
+import os
 
-<<<<<<< HEAD
+# ======================================================
+# 1. Physical constants and decay model
+# ======================================================
+class PhysicsParameters:
+    def __init__(self):
+        self.pi = np.pi
+        self.alfem = 1/137.0
+        self.sin2 = 0.23
+        self.aw = np.arcsin(np.sqrt(self.sin2))
+        self.Mz = 91.2  # GeV
+        self.rs = 13000.0  # sqrt(s)
+        self.ml = 0.1056  # muon mass [GeV]
 
-
-
-
-
-=======
->>>>>>> eb44b3a (Refactor TotalCrossSection.py: Move main function to the end, update grid interpolation filename, and enhance histogram output structure)
-# ===========================
-# Parameters (module)
-# ===========================
-pi = 4.0 * np.arctan(1.0)
-pi2 = pi ** 2
-alfem = 1.0 / 137.0
-sin2 = 0.23
-aw = np.arcsin(np.sqrt(sin2))
-Mz = 91.2  # Z0 mass
-rs = 13000.0  # sqrt(s)
-
-# ===========================
-# Dilepton Decay Function
-# ===========================
-def DileptonDecay(MVar):
-    M = MVar
-    M2 = M * M
-    Mz2 = Mz * Mz
-    DecayWidth = ((alfem * M) / (6.0 * (np.sin(2.0 * aw) ** 2))) * (
-        (160.0 / 3.0) * (np.sin(aw) ** 4) - 40.0 * (np.sin(aw) ** 2) + 21.0
-    )
-    Branch = 3.3662 / 100.0
-    InvariantMassDist = (1.0 / pi) * (
-        (M * DecayWidth) / ((M2 - Mz2) ** 2 + (M * DecayWidth) ** 2)
-    )
-    Result = InvariantMassDist * Branch
-    return Result
-
-def read_grid(nPoints, filename):
-    # Inicializa arrays
-    yGrid = np.zeros(nPoints)
-    ptGrid = np.zeros(nPoints)
-    PartonLevelGrid = np.zeros((nPoints, nPoints))
-
-    with open(filename, 'r') as f:
-        lines = f.readlines()
-
-    idx = 0
-    for i in range(nPoints):
-        for j in range(nPoints):
-            yVar, ptVar, PartonLevelVar = map(float, lines[idx].split())
-            yGrid[i] = yVar
-            ptGrid[j] = ptVar
-            PartonLevelGrid[i, j] = PartonLevelVar
-            idx += 1
-
-    return yGrid, ptGrid, PartonLevelGrid
-
-def InterpolateGrid(y, pt, filename="Grids/Dat-Files/kslinear_grid.dat", nPoints=500):
-    yGrid, ptGrid, PartonLevelGrid = read_grid(nPoints, filename)
-    # Cria interpolador
-    interpolator = RegularGridInterpolator((yGrid, ptGrid), PartonLevelGrid)
-    value = interpolator([[y, pt]])[0]
-#    print(f"Interpolated value at y={y}, pt={pt}: {value}")
-    return value
+    def dilepton_decay(self, M):
+        """Partial width × branching ratio for Z → μ⁺μ⁻."""
+        Mz2 = self.Mz**2
+        M2 = M**2
+        width = ((self.alfem*M)/(6.0*(np.sin(2*self.aw))**2)) * (
+            (160.0/3.0)*(np.sin(self.aw)**4) - 40.0*(np.sin(self.aw)**2) + 21.0
+        )
+        branch = 3.3 / 100.0
+        inv_mass_dist = (1.0/np.pi) * ((M*width)/((M2 - Mz2)**2 + (M*width)**2))
+        return inv_mass_dist * branch
 
 
-# ===========================
-# IntegrandSigma Subroutine
-# ===========================
-def IntegrandSigma(x):
-    
-    pt2Var_max = 150**2
-    pt2Var_min = 1e-2**2
-    m2Var_min = 60**2
-    m2Var_max = 120**2
-    yVar_max = 4.5
-    yVar_min = 2.0
-    yVar     = yVar_min + (yVar_max - yVar_min)*x[0]
-    m2Var    = m2Var_min + (m2Var_max - m2Var_min)*x[1]
-    pt2Var   = pt2Var_min + (pt2Var_max - pt2Var_min)*x[2]
-<<<<<<< HEAD
-    jac = (yVar_max - yVar_min)*(m2Var_max - m2Var_min)*(pt2Var_max - pt2Var_min)   
-    physicalWgt = jac#vegas.RAvg*jac/vegas.itermax
-=======
-    jac = (yVar_max - yVar_min)*(m2Var_max - m2Var_min)*(pt2Var_max - pt2Var_min) 
-    physicalWgt = jac
->>>>>>> eb44b3a (Refactor TotalCrossSection.py: Move main function to the end, update grid interpolation filename, and enhance histogram output structure)
-    
-    global x2, pt, x1, M
-    M2 = m2Var
-    M  = np.sqrt(m2Var)
-    pt = np.sqrt(pt2Var)
-    y = yVar
+# ======================================================
+# 2. Histogram manager
+# ======================================================
+class HistogramManager:
+    def __init__(self, y_bins, pt_bins, m_bins):
+        self.y_edges = np.linspace(*y_bins)
+        self.pt_edges = np.linspace(*pt_bins)
+        self.m_edges = np.linspace(*m_bins)
 
-    x1 = (np.sqrt(M2 + pt ** 2) / rs) * np.exp(y)
-    x2 = (np.sqrt(M2 + pt ** 2) / rs) * np.exp(-y)
+        self.sig_y = np.zeros(len(self.y_edges)-1)
+        self.sig_pt = np.zeros(len(self.pt_edges)-1)
+        self.sig_m = np.zeros(len(self.m_edges)-1)
 
-    varJacobian = (2.0 / rs) * np.sqrt(M2 + pt ** 2) * np.cosh(yVar)
-    preIntegral = (x1 / (x1 + x2)) * varJacobian
+        self.y_slices = [(2.0, 2.5), (2.5, 3.0), (3.0, 3.5), (3.5, 4.0), (4.0, 4.5)]
+        self.sig_ypt = [np.zeros(len(self.pt_edges)-1) for _ in self.y_slices]
 
-    # HadronicCrossSection = DGAUSS(IntegrandHadronicCrossSection, 0.0, 1.0, 1e-4)
-    # Result = preIntegral * DileptonDecay(M) * HadronicCrossSection
-    # For demonstration, set HadronicCrossSection = 1.0
-    HadronicCrossSection = InterpolateGrid(y, pt)
-    Result = preIntegral * DileptonDecay(M) * HadronicCrossSection
+    def fill(self, y, pt, M, weight):
+        # y distribution
+        iy = np.digitize(y, self.y_edges) - 1
+        if 0 <= iy < len(self.sig_y):
+            self.sig_y[iy] += weight
 
-    units = 0.389e9  # GeV^-2 to pb
-    SigTot = pi * Result * units
+        # pT distribution
+        ipt = np.digitize(pt, self.pt_edges) - 1
+        if 0 <= ipt < len(self.sig_pt):
+            self.sig_pt[ipt] += weight
 
-    # Boundaries
-    if x1 > 1.0 or x2 > 1.0 or M < 60.0 or M > 120.0:
-        SigTot = 0.0
+        # M distribution
+        im = np.digitize(M, self.m_edges) - 1
+        if 0 <= im < len(self.sig_m):
+            self.sig_m[im] += weight
 
-    # Indices
-    ny, y_min, y_max, dy = bin_params['ny'], bin_params['y_min'], bin_params['y_max'], bin_params['dy']
-    npt, pt_min, pt_max, dpt = bin_params['npt'], bin_params['pt_min'], bin_params['pt_max'], bin_params['dpt']
-    nm, m_min, m_max, dm = bin_params['nm'], bin_params['m_min'], bin_params['m_max'], bin_params['dm']
+        # y-pT double differential
+        for idx, (ymin, ymax) in enumerate(self.y_slices):
+            if ymin < y < ymax and 0 <= ipt < len(self.pt_edges)-1:
+                deltaY = ymax - ymin
+                self.sig_ypt[idx][ipt] += weight / deltaY
 
-    iy = int((y - y_min) / dy)
-    ipt = int((pt - pt_min) / dpt)
-    im = int((M - m_min) / dm)
+    def write_results(self, outdir="Output"):
+        os.makedirs(outdir, exist_ok=True)
+        np.savetxt(f"{outdir}/dsig_dy.dat",
+                   np.column_stack([0.5*(self.y_edges[1:]+self.y_edges[:-1]), self.sig_y]))
+        np.savetxt(f"{outdir}/dsig_dpt.dat",
+                   np.column_stack([0.5*(self.pt_edges[1:]+self.pt_edges[:-1]), self.sig_pt]))
+        np.savetxt(f"{outdir}/dsig_dm.dat",
+                   np.column_stack([0.5*(self.m_edges[1:]+self.m_edges[:-1]), self.sig_m]))
+        for i, (ymin, ymax) in enumerate(self.y_slices):
+            np.savetxt(f"{outdir}/dsig_dydpt_y{ymin:.1f}-{ymax:.1f}.dat",
+                       np.column_stack([0.5*(self.pt_edges[1:]+self.pt_edges[:-1]),
+                                        self.sig_ypt[i]]))
+        print(f"Histograms written to {outdir}/")
 
-    # Collecting spectra
-    if hist['iDoHist'] == 1:
-        if y_min < y < y_max and 0 <= iy < ny:
-            hist['sig_y'][iy] += SigTot * physicalWgt / dy
-        if pt_min < pt < pt_max and 0 <= ipt < npt:
-            hist['sig_pt'][ipt] += SigTot * physicalWgt / dpt
-        if pt_min < pt < pt_max and 0 <= ipt < npt:
-            if 2.0 < y < 2.5:
-                deltaY = 2.5 - 2.0
-                hist['sig_ypt1'][ipt] += SigTot * physicalWgt / (dpt * deltaY)
-            if 2.5 < y < 3.0:
-                deltaY = 3.0 - 2.5
-                hist['sig_ypt2'][ipt] += SigTot * physicalWgt / (dpt * deltaY)
-            if 3.0 < y < 3.5:
-                deltaY = 3.5 - 3.0
-                hist['sig_ypt3'][ipt] += SigTot * physicalWgt / (dpt * deltaY)
-            if 3.5 < y < 4.0:
-                deltaY = 4.0 - 3.5
-                hist['sig_ypt4'][ipt] += SigTot * physicalWgt / (dpt * deltaY)
-            if 4.0 < y < 4.5:
-                deltaY = 4.5 - 4.0
-                hist['sig_ypt5'][ipt] += SigTot * physicalWgt / (dpt * deltaY)
-        if m_min < M < m_max and 0 <= im < nm:
-            hist['sig_m'][im] += SigTot * physicalWgt / dm
-            
-            
-<<<<<<< HEAD
-      
-=======
+
+# ======================================================
+# 3. Grid interpolator
+# ======================================================
+class GridInterpolator:
+    def __init__(self, filename, n_points=15):
+        self.n_points = n_points
+        self.filename = filename
+        self.y_grid = np.zeros(n_points)
+        self.pt_grid = np.zeros(n_points)
+        self.m_grid = np.zeros(n_points)
+        self.parton_grid = np.zeros((n_points, n_points, n_points))
+        self._read_grid()
+
+    def _read_grid(self):
+        with open(self.filename, "r") as f:
+            for i in range(self.n_points):
+                for j in range(self.n_points):
+                    for k in range(self.n_points):
+                        line = f.readline()
+                        if not line:
+                            break
+                        yv, ptv, mv, val = map(float, line.strip().split())
+                        self.y_grid[i] = yv
+                        self.pt_grid[j] = ptv
+                        self.m_grid[k] = mv
+                        self.parton_grid[i, j, k] = val
+
+    def interpolate(self, y, pt, m):
+        interpolator = RegularGridInterpolator(
+            (self.y_grid, self.pt_grid, self.m_grid),
+            self.parton_grid,
+            bounds_error=False,
+            fill_value=None
+        )
+        return float(interpolator((y, pt, m)))
+
+
+# ======================================================
+# 4. Cross section integrand with full kinematics
+# ======================================================
+
+# ======================================================
+# 4. Cross section integrand with full Fortran-style kinematics
+# ======================================================
+class CrossSectionIntegrand:
+    def __init__(self, params, hist_manager, hadronic):
+        self.params = params
+        self.hist = hist_manager
+        self.hadronic = hadronic
+
+    def __call__(self, x):
+        yp, ym, ktp, ktm, phip, phim = x
+        mp = mm = self.params.ml
+
+        # === CORTES ===
+        if not (2.0 <= yp <= 4.5 or 2.0 <= ym <= 4.5):
+            return 0.0
+        if not (20.0 <= ktp or 20.0 <= ktm):
+            return 0.0
+        # -----------------------------------------------
+        # Componentes transversas dos múons
+        # -----------------------------------------------
+        ktpx = ktp * np.cos(phip)
+        ktpy = ktp * np.sin(phip)
+        ktmx = ktm * np.cos(phim)
+        ktmy = ktm * np.sin(phim)
+
+        # -----------------------------------------------
+        # Massas transversas dos múons (m⊥ = √(kT² + mμ²))
+        # -----------------------------------------------
+        mperp_p2 = ktp**2 + mp**2
+        mperp_m2 = ktm**2 + mm**2
+        mperp_p = np.sqrt(mperp_p2)
+        mperp_m = np.sqrt(mperp_m2)
+
+        # -----------------------------------------------
+        # Diferença de rapidez e momento transversal do bóson
+        #    (seguindo o sinal em pty do código Fortran)
+        # -----------------------------------------------
+        ptx = ktpx + ktmx
+        pty = ktpy - ktmy   # <- sinal trocado conforme Fortran
+        pt2 = ptx**2 + pty**2
+        pt = np.sqrt(pt2)
+
+        # -----------------------------------------------
+        # Massa invariante do sistema (Fortran-style)
+        #     m² = m⊥₊² + m⊥₋² + 2·m⊥₊·m⊥₋·cosh(Δy) - pT²
+        # -----------------------------------------------
+        deltaY = yp - ym
+        m2 = mperp_p**2 + mperp_m**2 + 2.0 * mperp_p * mperp_m * np.cosh(deltaY) - pt2
+        if m2 <= 0:
+            return 0.0
+        M = np.sqrt(m2)
+
+        # -----------------------------------------------
+        # Rapidez do bóson (Fortran logic)
+        #     y = log( (xf * rs) / sqrt(pt² + M²) )
+        #     onde xf = xp + xm
+        # -----------------------------------------------
+        rs = self.params.rs
+        xp = (ktp / rs) * np.exp(yp)
+        xm = (ktm / rs) * np.exp(ym)
+        xf = xp + xm
+        y = np.log(xf * (rs / np.sqrt(pt2 + M**2)))
+
+        # -----------------------------------------------
+        # Frações de momento partônico (Fortran form)
+        #     x1 = √(M² + pT²)/rs * e^{+y}
+        #     x2 = √(M² + pT²)/rs * e^{−y}
+        # -----------------------------------------------
+        x1 = np.sqrt(M**2 + pt**2) / rs * np.exp(+y)
+        x2 = np.sqrt(M**2 + pt**2) / rs * np.exp(-y)
+
+        # -----------------------------------------------
+        # Cortes cinemáticos (como no Fortran)
+        # -----------------------------------------------
+        if not (2.0 <= y <= 4.5):
+            return 0.0
+        if not (60.0 <= M <= 120.0):
+            return 0.0
+        if x1 >= 1.0 or x2 >= 1.0:
+            return 0.0
+
+        # -----------------------------------------------
+        # Jacobiano e pre-integral (Fortran-style)
+        # -----------------------------------------------
+        varJacobian = (2.0 / rs) * np.sqrt(M**2 + pt2) * np.cosh(y)
+        preIntegral = (x1 / (x1 + x2)) * varJacobian
         
->>>>>>> eb44b3a (Refactor TotalCrossSection.py: Move main function to the end, update grid interpolation filename, and enhance histogram output structure)
-    
-    vegasIntegrand = jac*SigTot
+        
+        # -----------------------------------------------
+        # Fatores hadrônicos e decaimento do bóson
+        # -----------------------------------------------
+        hadronic_val = self.hadronic.interpolate(y, pt, M)
+        decay = self.params.dilepton_decay(M)
 
-    return vegasIntegrand
+        # Integrando o pre-integral
+        sigma = preIntegral * decay * hadronic_val
+
+        # -----------------------------------------------
+        # Preenchimento dos histogramas com o peso do VEGAS
+        # -----------------------------------------------
+        self.hist.fill(y, pt, M, sigma)
+        return sigma
+
+
+    
+
+# ======================================================
+# 5. VEGAS integrator
+# ======================================================
+class VegasIntegrator:
+    def __init__(self, integrand, bounds):
+        self.integrand = integrand
+        self.bounds = bounds
+        self.integrator = vegas.Integrator(bounds)
+
+    def integrate(self, nitn=10, neval=10000):
+        result = self.integrator(self.integrand, nitn=nitn, neval=neval)
+        print(f"VEGAS ⟨σ⟩ = {result.mean:.6e} ± {result.sdev:.6e}  (Q={result.Q:.2f})")
+        return result.mean, result.sdev
+
+
+# ======================================================
+# 6. Main driver
+# ======================================================
 def main():
-    global hist, bin_params
-    # Binning parameters
-    ny = 100
-    y_min = 2.0
-    y_max = 4.5
-    dy = (y_max - y_min) / ny
+    params = PhysicsParameters()
 
-    npt = 100
-    pt_min = 0.0
-    pt_max = 150.0
-    dpt = (pt_max - pt_min) / npt
+    hist = HistogramManager(
+        y_bins=(2.0, 4.5, 61),
+        pt_bins=(0.0, 150.0, 61),
+        m_bins=(60.0, 120.0, 61)
+    )
 
-    nm = 100
-    m_min = 60.0
-    m_max = 120.0
-    dm = (m_max - m_min) / nm
+    hadronic = GridInterpolator("hadronic_grid.dat", n_points=15)
 
-    bin_params = {
-        'ny': ny, 'y_min': y_min, 'y_max': y_max, 'dy': dy,
-        'npt': npt, 'pt_min': pt_min, 'pt_max': pt_max, 'dpt': dpt,
-        'nm': nm, 'm_min': m_min, 'm_max': m_max, 'dm': dm
-    }
+    bounds = [
+        (2.0, 4.5),       # y+
+        (2.0, 4.5),       # y-
+        (20.0, 120.0),    # kT+
+        (20.0, 120.0),    # kT-
+        (-np.pi, np.pi),  # phi+
+        (-np.pi, np.pi)   # phi-
+    ]
 
-    # Histograms
-    hist = {
-        'iDoHist': 0,
-        'sig_y': np.zeros(ny),
-        'sig_pt': np.zeros(npt),
-        'sig_m': np.zeros(nm),
-        'sig_ypt1': np.zeros(npt),
-        'sig_ypt2': np.zeros(npt),
-        'sig_ypt3': np.zeros(npt),
-        'sig_ypt4': np.zeros(npt),
-        'sig_ypt5': np.zeros(npt)
-    }
-    
-    integ = vegas.Integrator([[0, 1], [0, 1],[0, 1]])
-    hist['iDoHist'] == 0
-    integ(IntegrandSigma, nitn=10, neval=10000)
-    
-    hist['iDoHist'] == 1
-    result = integ(IntegrandSigma, nitn=10, neval=10000)
-    print('Resultado:', result.mean, '+-', result.sdev)
-    
-    # Fill histograms with iDoHist=1
-    # Output results
-    with open('dsig_dy.dat', 'w') as f:
-        sum_y = 0.0
-        for iy in range(ny):
-            y = y_min + iy * dy - dy / 2.0
-            f.write(f"{y:8.4f} {hist['sig_y'][iy]:12.4e}\n")
-            sum_y += hist['sig_y'][iy] * dy
-        print(f"sum_y: {sum_y:.6e}")
+    integrand = CrossSectionIntegrand(params, hist, hadronic)
+    vegas_integrator = VegasIntegrator(integrand, bounds)
 
-    with open('dsig_dpt.dat', 'w') as f:
-        sum_pt = 0.0
-        for ipt in range(npt):
-            pt = pt_min + ipt * dpt - dpt / 2.0
-            f.write(f"{pt:8.4f} {hist['sig_pt'][ipt]:12.4e}\n")
-            sum_pt += hist['sig_pt'][ipt] * dpt
-        print(f"sum_pt: {sum_pt:.6e}")
+    # Warm-up
+    vegas_integrator.integrate(nitn=5, neval=5000)
+    # Production run
+    vegas_integrator.integrate(nitn=10, neval=20000)
 
-    with open('dsig_dm.dat', 'w') as f:
-        for im in range(nm):
-            m = m_min + im * dm - dm / 2.0
-            f.write(f"{m:8.4f} {hist['sig_m'][im]:12.4e}\n")
-    
-    
+    hist.write_results()
+
+
 if __name__ == "__main__":
     main()
-
-def main():
-    global hist, bin_params
-    # Binning parameters
-    ny = 100
-    y_min = 2.0
-    y_max = 4.5
-    dy = (y_max - y_min) / ny
-
-    npt = 100
-    pt_min = 0.0
-    pt_max = 150.0
-    dpt = (pt_max - pt_min) / npt
-
-    nm = 100
-    m_min = 60.0
-    m_max = 120.0
-    dm = (m_max - m_min) / nm
-
-    bin_params = {
-        'ny': ny, 'y_min': y_min, 'y_max': y_max, 'dy': dy,
-        'npt': npt, 'pt_min': pt_min, 'pt_max': pt_max, 'dpt': dpt,
-        'nm': nm, 'm_min': m_min, 'm_max': m_max, 'dm': dm
-    }
-
-    # Histograms
-    hist = {
-        'iDoHist': 0,
-        'sig_y': np.zeros(ny),
-        'sig_pt': np.zeros(npt),
-        'sig_m': np.zeros(nm),
-        'sig_ypt1': np.zeros(npt),
-        'sig_ypt2': np.zeros(npt),
-        'sig_ypt3': np.zeros(npt),
-        'sig_ypt4': np.zeros(npt),
-        'sig_ypt5': np.zeros(npt)
-    }
-    
-    integ = vegas.Integrator([[0, 1], [0, 1],[0, 1]])
-    hist['iDoHist'] == 0
-    integ(IntegrandSigma, nitn=10, neval=100)
-    
-    hist['iDoHist'] == 1
-    result = integ(IntegrandSigma, nitn=10, neval=100)
-    print('Resultado:', result.mean, '+-', result.sdev)
-    
-    # Fill histograms with iDoHist=1
-    # Output results
-    with open("Output/dsig_dy.dat", 'w') as f:
-        sum_y = 0.0
-        for iy in range(ny):
-            y = y_min + iy * dy - dy / 2.0
-            f.write(f"{y:8.4f} {hist['sig_y'][iy]:12.4e}\n")
-            sum_y += hist['sig_y'][iy] * dy
-        print(f"sum_y: {sum_y:.6e}")
-
-    with open("Output/dsig_dpt.dat", 'w') as f:
-        sum_pt = 0.0
-        for ipt in range(npt):
-            pt = pt_min + ipt * dpt - dpt / 2.0
-            f.write(f"{pt:8.4f} {hist['sig_pt'][ipt]:12.4e}\n")
-            sum_pt += hist['sig_pt'][ipt] * dpt
-        print(f"sum_pt: {sum_pt:.6e}")
-
-    with open("Output/dsig_dm.dat", 'w') as f:
-        for im in range(nm):
-            m = m_min + im * dm - dm / 2.0
-            f.write(f"{m:8.4f} {hist['sig_m'][im]:12.4e}\n")
-    
-    
-if __name__ == "__main__":
-    main()
-
-
-
-
-
-
-
