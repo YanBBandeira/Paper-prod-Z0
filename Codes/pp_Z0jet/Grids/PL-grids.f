@@ -1,5 +1,6 @@
       MODULE parameters
       IMPLICIT NONE
+      SAVE
       DOUBLE PRECISION, PARAMETER :: pi = 4.d0*datan(1.d0)
       DOUBLE PRECISION, PARAMETER :: pi2 = pi**2.d0
       DOUBLE PRECISION, PARAMETER :: alfem = 1.d0/137.d0
@@ -10,7 +11,16 @@
       DOUBLE PRECISION, PARAMETER :: rs = 13000.d0   !center of mass energy \sqrt{s}
       END MODULE 
       
+      MODULE globals
+            IMPLICIT NONE
+            SAVE
+            DOUBLE PRECISION :: pt, x1, m
+            DOUBLE PRECISION :: x2
+      END MODULE
+
       program PL_grids_kslinear
+      USE globals
+      use parameters
       implicit none
       integer, parameter :: nPoints = 15
 c     ------------------------------------------------------------------
@@ -25,6 +35,8 @@ c     ------------------------------------------------------------------
       iset = 400001 !KS-2013-linear 
       call TMDinit(iset)
       call TMDset(iset)
+
+      call InitPDFsetByName('CT10nlo')
 
       y_min = 1.d0
       y_max = 5.d0
@@ -41,11 +53,14 @@ c     ==================================================================
 c     Output files
 c     ==================================================================
 
-      open(unit=11,file="DatFiles/tst_grid.dat",status='unknown')
+      open(unit=11,file="DatFiles/tst_grid.dat",status='replace', 
+     * action='write')
 
 c     ==================================================================
 c     Grid loop
 c     ==================================================================
+C     Usar as flags -O3 -fopenmp -march=native -ffast-math -funroll-loops
+      !$OMP PARALLEL DO PRIVATE(iy, ipt,im, partonLevelSigma) SCHEDULE(DYNAMIC)
       do iy=1,nPoints
       y(iy) = y_min + (iy-1)*dy
       
@@ -66,6 +81,7 @@ c     ==================================================================
                   end do
             end do 
       end do
+      !$OMP END PARELLEL DO
 100   format(2x,6(E10.4,2x))
       close(11)
       end program PL_grids_kslinear
@@ -74,13 +90,12 @@ c     ==================================================================
 c     parton level cross section function
 c     ==================================================================
       function FuncPartonLevelSigma(yVar,ptVar,mVar)
+      use globals
       use parameters
       double precision FuncPartonLevelSigma, ptVar, yVar, mVar
       double precision y, pt, pt2, M2, x1, x2, M
       double precision result, units,IntegrandHadronicCrossSection
-      double precision dgauss
-      common/xbj/x2
-      common/hadronicVariables/pt, x1, m
+      double precision dgauss, sqrt_M2pT2
       external IntegrandHadronicCrossSection, dgauss 
       
       pt = ptVar
@@ -90,8 +105,9 @@ c     ==================================================================
       M2 = M**2.d0
       pt2 = pt**2.d0
 
-      x1 = (DSQRT(M2 + pt2)/RS)*DEXP(y)
-      x2 = (DSQRT(M2 + pt2)/RS)*DEXP(-y)
+      sqrt_M2pT2 = DSQRT(M2 + pt2) 
+      x1 = (sqrt_M2pT2/RS)*DEXP(y)
+      x2 = (sqrt_M2pT2/RS)*DEXP(-y)
 
       result = dgauss(IntegrandHadronicCrossSection,x1,1.d0,1.d-4) 
               
@@ -111,6 +127,8 @@ c     =================================================================
 c     =================================================================
 
       FUNCTION IntegrandHadronicCrossSection(alf)
+      use globals
+
       USE parameters
       IMPLICIT NONE 
       DOUBLE PRECISION IntegrandHadronicCrossSection, alf, Result
@@ -128,7 +146,6 @@ c     =================================================================
       DOUBLE PRECISION mf, gfv, gfa
       
 
-      COMMON/hadronicVariables/pt, x1, m
 
       EXTERNAL InitPDFsetByName, evolvePDF
 
@@ -153,9 +170,9 @@ ctest      write(*,*) 'Hadronic variables: ', pt, x1, M, z, xf, hs
 c     ------------------------------------------------------------------
 c     This is the parton distribution function (PDF) initialization
 c     ------------------------------------------------------------------   
-      name = 'CT10nlo' ! This is the PDF set name
-      call InitPDFsetByName(name)
-      call evolvePDF(xf,q**2.d0,f)
+      !name = 'CT10nlo' ! This is the PDF set name
+      !call InitPDFsetByName(name)
+      call evolvePDF(xf,q,f)
 
       u = f(2)        !u
       d = f(1)        !d
@@ -274,8 +291,8 @@ c     =================================================================
 ctest      write(*,*) 'Pre-terms: ', preTerms, gfv2, gfa2, mf, M2, pt, z
       !DADMUL routine parameters:
       N = 2               !Dimension
-      IMINPTS = 1000      !Min number of points
-      IMAXPTS = 10000   !Max number of points
+      IMINPTS = 500      !Min number of points
+      IMAXPTS = 5000   !Max number of points
       EPS = 1.d-3          !Numerical precision    
       IWK = 110000        !Work array dimension
       A(1) = 0.d0       !Lower limit for variable 1 
@@ -424,13 +441,15 @@ c     ==================================================================
 
 
       FUNCTION ugd(akt) !WW
+      use globals
+
       use parameters
       IMPLICIT NONE
       DOUBLE PRECISION ugd, akt, alphas, arg, akt2
       DOUBLE PRECISION pre_ugd, x2, F_KS, sc
 
       
-      COMMON/xbj/x2
+
 
       EXTERNAL F_KS,sc
       

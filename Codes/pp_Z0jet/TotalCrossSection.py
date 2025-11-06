@@ -32,9 +32,9 @@ class PhysicsParameters:
 # 2. Histogram manager
 # ======================================================
 class HistogramManager:
-    def __init__(self, y_bins, pt_bins, m_bins):
+    def __init__(self, y_bins, pt_range, m_bins):
         self.y_edges = np.linspace(*y_bins)
-        self.pt_edges = np.linspace(*pt_bins)
+        self.pt_edges = np.logspace(np.log10(pt_range[0]), np.log10(pt_range[1]), pt_range[2])
         self.m_edges = np.linspace(*m_bins)
 
         self.sig_y = np.zeros(len(self.y_edges)-1)
@@ -251,12 +251,12 @@ def main():
     params = PhysicsParameters()
 
     hist = HistogramManager(
-        y_bins=(2.0, 4.5, 100),
-        pt_bins=(0.0, 150.0, 61),
+        y_bins=(2.0, 4.5, 61),
+        pt_range=(1.0, 150.0, 61),
         m_bins=(60.0, 120.0, 61)
     )
 
-    hadronic = GridInterpolator("/home/yan/Documents/PhD/papers/Paper-prod-Z0/Codes/pp_Z0jet/Grids/DatFiles/tst_grid.dat", n_points=15)
+    hadronic = GridInterpolator(r"C:\Users\Callidus\Documents\Clones\Paper-prod-Z0\Codes\pp_Z0jet\Grids\DatFiles\tst_grid.dat", n_points=15)
     
     bounds = [
         (2.0, 4.5),       # y+
@@ -272,8 +272,12 @@ def main():
 
     # Warm-up
     vegas_integrator.integrate(nitn=5, neval=5000)
-    # Production run
+    # Initial production
     vegas_integrator.integrate(nitn=10, neval=20000)
+    # Refining
+    vegas_integrator.integrate(nitn=20, neval = 50000)
+    # Final production
+    vegas_integrator.integrate(nitn=30, neval=100000)
 
     hist.write_results()
 
