@@ -187,7 +187,7 @@ class CrossSectionIntegrand:
         y = np.log(xf * (rs / np.sqrt(pt2 + M**2)))
 
         # -----------------------------------------------
-        # Frações de momento partônico (Fortran form)
+        # Frações de momento partônico (Fortran form)rs
         #     x1 = √(M² + pT²)/rs * e^{+y}
         #     x2 = √(M² + pT²)/rs * e^{−y}
         # -----------------------------------------------
@@ -197,8 +197,8 @@ class CrossSectionIntegrand:
         # -----------------------------------------------
         # Cortes cinemáticos (como no Fortran)
         # -----------------------------------------------
-        if not (2.0 <= y <= 4.5):
-            return 0.0
+        #if not (2.0 <= y <= 4.5):
+        #    return 0.0
         if not (60.0 <= M <= 120.0):
             return 0.0
         if x1 >= 1.0 or x2 >= 1.0:
@@ -218,7 +218,7 @@ class CrossSectionIntegrand:
         decay = self.params.dilepton_decay(M)
 
         # Integrando o pre-integral
-        sigma = preIntegral * decay * hadronic_val
+        sigma =  decay * hadronic_val * ktp * ktm
 
         # -----------------------------------------------
         # Preenchimento dos histogramas com o peso do VEGAS
@@ -251,13 +251,13 @@ def main():
     params = PhysicsParameters()
 
     hist = HistogramManager(
-        y_bins=(2.0, 4.5, 61),
+        y_bins=(2.0, 4.5, 100),
         pt_bins=(0.0, 150.0, 61),
         m_bins=(60.0, 120.0, 61)
     )
 
-    hadronic = GridInterpolator("hadronic_grid.dat", n_points=15)
-
+    hadronic = GridInterpolator("/home/yan/Documents/PhD/papers/Paper-prod-Z0/Codes/pp_Z0jet/Grids/DatFiles/tst_grid.dat", n_points=15)
+    
     bounds = [
         (2.0, 4.5),       # y+
         (2.0, 4.5),       # y-
