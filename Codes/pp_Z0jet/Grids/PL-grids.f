@@ -14,15 +14,14 @@
       MODULE globals
             IMPLICIT NONE
             SAVE
-            DOUBLE PRECISION :: pt, x1, m
-            DOUBLE PRECISION :: x2
+            DOUBLE PRECISION  pt, x1, m
+            DOUBLE PRECISION  x2
       END MODULE
 
       program PL_grids_kslinear
-      USE globals
       use parameters
-      implicit none
-      integer, parameter :: nPoints = 15
+      
+      integer, parameter :: nPoints = 25
 c     ------------------------------------------------------------------
       double precision y(nPoints), y_min, y_max, dy 
       double precision pt(nPoints), pt_min, pt_max, dpt
@@ -35,8 +34,8 @@ c     ------------------------------------------------------------------
       iset = 400001 !KS-2013-linear 
       call TMDinit(iset)
       call TMDset(iset)
-
-      call InitPDFsetByName('CT10nlo')
+      call InitPDFsetByName("CT10nlo")
+      
 
       y_min = 1.d0
       y_max = 5.d0
@@ -54,13 +53,12 @@ c     Output files
 c     ==================================================================
 
       open(unit=11,file="DatFiles/tst_grid.dat",status='replace', 
-     * action='write')
+     & action='write')
 
 c     ==================================================================
 c     Grid loop
 c     ==================================================================
 C     Usar as flags -O3 -fopenmp -march=native -ffast-math -funroll-loops
-      !$OMP PARALLEL DO PRIVATE(iy, ipt,im, partonLevelSigma) SCHEDULE(DYNAMIC)
       do iy=1,nPoints
       y(iy) = y_min + (iy-1)*dy
       
@@ -81,7 +79,6 @@ C     Usar as flags -O3 -fopenmp -march=native -ffast-math -funroll-loops
                   end do
             end do 
       end do
-      !$OMP END PARELLEL DO
 100   format(2x,6(E10.4,2x))
       close(11)
       end program PL_grids_kslinear
@@ -93,10 +90,11 @@ c     ==================================================================
       use globals
       use parameters
       double precision FuncPartonLevelSigma, ptVar, yVar, mVar
-      double precision y, pt, pt2, M2, x1, x2, M
+      double precision pt2, M2
       double precision result, units,IntegrandHadronicCrossSection
       double precision dgauss, sqrt_M2pT2
-      external IntegrandHadronicCrossSection, dgauss 
+      external IntegrandHadronicCrossSection, dgauss
+      external InitPDFsetByName, evolvePDF
       
       pt = ptVar
       y  = yVar
@@ -106,8 +104,8 @@ c     ==================================================================
       pt2 = pt**2.d0
 
       sqrt_M2pT2 = DSQRT(M2 + pt2) 
-      x1 = (sqrt_M2pT2/RS)*DEXP(y)
-      x2 = (sqrt_M2pT2/RS)*DEXP(-y)
+      x1 = (sqrt_M2pT2/RS)*DEXP(yVar)
+      x2 = (sqrt_M2pT2/RS)*DEXP(-yVar)
 
       result = dgauss(IntegrandHadronicCrossSection,x1,1.d0,1.d-4) 
               
@@ -134,7 +132,7 @@ c     =================================================================
       DOUBLE PRECISION IntegrandHadronicCrossSection, alf, Result
       CHARACTER name*64
       DOUBLE PRECISION f(-6:6)
-      DOUBLE PRECISION pt, x1, M, z, xf, hs, Q
+      DOUBLE PRECISION  z, xf, hs, Q
       DOUBLE PRECISION pt2, M2 
       DOUBLE PRECISION u,d,s,c,b,uBar,dBar,sBar,cBar,bBar
       DOUBLE PRECISION MU,MD,MS,MC,MB
@@ -170,10 +168,9 @@ ctest      write(*,*) 'Hadronic variables: ', pt, x1, M, z, xf, hs
 c     ------------------------------------------------------------------
 c     This is the parton distribution function (PDF) initialization
 c     ------------------------------------------------------------------   
-      !name = 'CT10nlo' ! This is the PDF set name
-      !call InitPDFsetByName(name)
+      
       call evolvePDF(xf,q,f)
-
+      
       u = f(2)        !u
       d = f(1)        !d
       s = f(3)        !s
@@ -193,8 +190,8 @@ c     heavy quarks
       MC    = 1.4D0 
       MB    = 4.5d0
 c     ------------------------------------------------------------------
-ctest      write(*,*) 'Masses', MU, MD, MS, MC, MB
-ctest      write(*,*) 'Pdfs:', u,d,s,c,b,uBar,dBar,sBar,cBar,bBar
+c      write(*,*) 'Masses', MU, MD, MS, MC, MB
+c      write(*,*) 'Pdfs:', u,d,s,c,b,uBar,dBar,sBar,cBar,bBar
 
 c     ------------------------------------------------------------------
 c     Charge and coupling
@@ -226,7 +223,7 @@ c     with similar mass
       gfv = gfgvdw
       gfa = gfgadw
       call PartonTargetCrossSection(dSQuarksFunc,pt,z,M,mf,gfv,gfa)
-      upQuarkCS = dSQuarksFunc*(d + s + dBar +sBar)
+      downStrangeQuarksCS = dSQuarksFunc*(d + s + dBar +sBar)
 
 c     quark charm
       mf = MC
@@ -446,7 +443,7 @@ c     ==================================================================
       use parameters
       IMPLICIT NONE
       DOUBLE PRECISION ugd, akt, alphas, arg, akt2
-      DOUBLE PRECISION pre_ugd, x2, F_KS, sc
+      DOUBLE PRECISION pre_ugd, F_KS, sc
 
       
 

@@ -210,7 +210,7 @@ class CrossSectionIntegrand:
         varJacobian = (2.0 / rs) * np.sqrt(M**2 + pt2) * np.cosh(y)
         preIntegral = (x1 / (x1 + x2)) * varJacobian
         
-        
+        jac = (4.5 - 2.0)**2.0 * (120.0-20.0)**2.0 * (np.pi)**2.0
         # -----------------------------------------------
         # Fatores hadrônicos e decaimento do bóson
         # -----------------------------------------------
@@ -218,7 +218,7 @@ class CrossSectionIntegrand:
         decay = self.params.dilepton_decay(M)
 
         # Integrando o pre-integral
-        sigma =  decay * hadronic_val * ktp * ktm
+        sigma =  decay * hadronic_val  * preIntegral * ktm *  ktp 
 
         # -----------------------------------------------
         # Preenchimento dos histogramas com o peso do VEGAS
@@ -256,7 +256,8 @@ def main():
         m_bins=(60.0, 120.0, 61)
     )
 
-    hadronic = GridInterpolator(r"C:\Users\Callidus\Documents\Clones\Paper-prod-Z0\Codes\pp_Z0jet\Grids\DatFiles\tst_grid.dat", n_points=15)
+    hadronic = GridInterpolator("/home/yan/Documents/PhD/papers/Paper-prod-Z0/Codes/pp_Z0jet/Grids/DatFiles/tst_grid.dat", n_points=15)
+
     
     bounds = [
         (2.0, 4.5),       # y+
