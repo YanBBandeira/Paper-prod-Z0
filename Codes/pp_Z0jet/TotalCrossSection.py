@@ -68,16 +68,33 @@ class HistogramManager:
 
     def write_results(self, outdir="Output"):
         os.makedirs(outdir, exist_ok=True)
+
+        # Calcular larguras dos bins
+        dy = np.diff(self.y_edges)
+        dpt = np.diff(self.pt_edges)
+        dm = np.diff(self.m_edges)
+
+        # Normalizar e salvar dsig/dy
         np.savetxt(f"{outdir}/dsig_dy.dat",
-                   np.column_stack([0.5*(self.y_edges[1:]+self.y_edges[:-1]), self.sig_y]))
+                np.column_stack([0.5*(self.y_edges[1:] + self.y_edges[:-1]),
+                                    self.sig_y / dy]))
+
+        # Normalizar e salvar dsig/dpt
         np.savetxt(f"{outdir}/dsig_dpt.dat",
-                   np.column_stack([0.5*(self.pt_edges[1:]+self.pt_edges[:-1]), self.sig_pt]))
+                np.column_stack([0.5*(self.pt_edges[1:] + self.pt_edges[:-1]),
+                                    self.sig_pt / dpt]))
+
+        # Normalizar e salvar dsig/dm
         np.savetxt(f"{outdir}/dsig_dm.dat",
-                   np.column_stack([0.5*(self.m_edges[1:]+self.m_edges[:-1]), self.sig_m]))
+                np.column_stack([0.5*(self.m_edges[1:] + self.m_edges[:-1]),
+                                    self.sig_m / dm]))
+
+        # Normalizar e salvar dsig/dy dpt para cada fatia em y
         for i, (ymin, ymax) in enumerate(self.y_slices):
             np.savetxt(f"{outdir}/dsig_dydpt_y{ymin:.1f}-{ymax:.1f}.dat",
-                       np.column_stack([0.5*(self.pt_edges[1:]+self.pt_edges[:-1]),
-                                        self.sig_ypt[i]]))
+                    np.column_stack([0.5*(self.pt_edges[1:] + self.pt_edges[:-1]),
+                                        self.sig_ypt[i] / dpt]))
+
         print(f"Histograms written to {outdir}/")
 
 
@@ -256,7 +273,7 @@ def main():
         m_bins=(60.0, 120.0, 61)
     )
 
-    hadronic = GridInterpolator("/home/yan/Documents/PhD/papers/Paper-prod-Z0/Codes/pp_Z0jet/Grids/DatFiles/tst_grid.dat", n_points=15)
+    hadronic = GridInterpolator(r"C:\Users\Callidus\Documents\Clones\Paper-prod-Z0\Codes\pp_Z0jet\Grids\DatFiles\tst_grid.dat", n_points=25)
 
     
     bounds = [
