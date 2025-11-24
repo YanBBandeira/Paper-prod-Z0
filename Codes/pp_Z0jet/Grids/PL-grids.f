@@ -21,7 +21,7 @@
       program PL_grids_kslinear
       use parameters
       
-      integer, parameter :: nPoints = 25
+      integer, parameter :: nPoints = 50
 c     ------------------------------------------------------------------
       double precision y(nPoints), y_min, y_max, dy 
       double precision pt(nPoints), pt_min, pt_max, dpt
@@ -37,12 +37,12 @@ c     ------------------------------------------------------------------
       call InitPDFsetByName("CT10nlo")
       
 
-      y_min = 1.d0
-      y_max = 5.d0
+      y_min = 2.d0
+      y_max = 4.5d0
       pt_min = dlog10(1.d0)
-      pt_max = dlog10(500.d0)
-      m_min = 50.d0
-      m_max = 200.d0
+      pt_max = dlog10(400.d0)
+      m_min = 60.d0
+      m_max = 120.d0
 
       dy = (y_max - y_min)/(nPoints)
       dpt = (pt_max - pt_min)/(nPoints)
@@ -59,11 +59,12 @@ c     ==================================================================
 c     Grid loop
 c     ==================================================================
 C     Usar as flags -O3 -fopenmp -march=native -ffast-math -funroll-loops
+      
       do iy=1,nPoints
       y(iy) = y_min + (iy-1)*dy
       
             do ipt = 1,nPoints
-      pt(ipt) = 10.d0**(pt_min + (ipt-1)*dpt) - 0.9d0
+      pt(ipt) = 10.d0**(pt_min + (ipt-1)*dpt) - 1.d0
                   do im = 1,nPoints
       m(im) = m_min + (im-1)*dm
       partonLevelSigma = FuncPartonLevelSigma(y(iy),pt(ipt),m(im))
@@ -90,7 +91,7 @@ c     ==================================================================
       use globals
       use parameters
       double precision FuncPartonLevelSigma, ptVar, yVar, mVar
-      double precision pt2, M2
+      double precision pt2, M2, y
       double precision result, units,IntegrandHadronicCrossSection
       double precision dgauss, sqrt_M2pT2
       external IntegrandHadronicCrossSection, dgauss
@@ -104,8 +105,8 @@ c     ==================================================================
       pt2 = pt**2.d0
 
       sqrt_M2pT2 = DSQRT(M2 + pt2) 
-      x1 = (sqrt_M2pT2/RS)*DEXP(yVar)
-      x2 = (sqrt_M2pT2/RS)*DEXP(-yVar)
+      x1 = (sqrt_M2pT2/RS)*DEXP(y)
+      x2 = (sqrt_M2pT2/RS)*DEXP(-y)
 
       result = dgauss(IntegrandHadronicCrossSection,x1,1.d0,1.d-4) 
               
@@ -169,7 +170,7 @@ c     ------------------------------------------------------------------
 c     This is the parton distribution function (PDF) initialization
 c     ------------------------------------------------------------------   
       
-      call evolvePDF(xf,q,f)
+      call evolvePDF(xf,q**2.d0,f)
       
       u = f(2)        !u
       d = f(1)        !d

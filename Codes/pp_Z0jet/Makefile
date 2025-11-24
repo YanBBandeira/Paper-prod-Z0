@@ -2,8 +2,7 @@
 
 # Compilador e flags
 FC = gfortran
-FFLAGS = -g -funderscoring -fno-second-underscore -Wall -O6 -ffast-math
-
+FFLAGS = -g -funderscoring -fno-second-underscore -Wall -O3 
 # Diretórios e bibliotecas
 LIB_DIR = /home/yan/Documents/PhD/Repo/build_tmdlib2211/lib
 LIBS = -lTMDlib -lapfelxx -lgsl -lgslcblas -lm `lhapdf-config --cflags --libs` -lstdc++

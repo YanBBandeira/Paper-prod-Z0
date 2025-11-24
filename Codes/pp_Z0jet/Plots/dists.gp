@@ -43,7 +43,7 @@ set samples 50, 50
 
 
 set logscale x
-set logscale y
+#set logscale y
 
 set output 'pTdist.eps'
 set xlabel 'p_T [GeV]' 
@@ -54,7 +54,7 @@ plot dist_pT u 1:2 w l lc rgb 'red' lw 3 t 'IP-SAT' , \
 #     dist_pT_T u 1:2 w l lc rgb 'blue' lw 3  t 'T' , \
 #     dist_pT_L u 1:2 w l lc rgb 'green' lw 3 t 'L' , \
 unset labeldist_Y_alt = '../Output/y_dist_grid.dat'
-unset logscale y 
+#unset logscale y 
 unset xrange
 
 set output 'YpTdist_2p25.eps'
