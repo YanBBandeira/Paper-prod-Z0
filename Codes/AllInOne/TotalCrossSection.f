@@ -190,7 +190,7 @@ c     =================================================================
       FUNCTION vegasIntegrand(x,vegasWgt)
       IMPLICIT NONE
 
-      DOUBLE PRECISION vegasIntegrand, x(3), vegasWgt
+      DOUBLE PRECISION vegasIntegrand, x(6), vegasWgt
       DOUBLE PRECISION ypVar, ymVar, phip, phim
       DOUBLE PRECISION ypVar_min, ypVar_max
       DOUBLE PRECISION ymVar_min, ymVar_max, jac
@@ -212,36 +212,31 @@ c     -----------------------------------------------------------------
       common/bveg2/it,ndo,si,swgt,schi,xi(50,11)
       common/bveg3/alph,ndmx,mds
 
-c     =================================================================
-c     PHASE SPACE
-c     =================================================================
-      pi  = 4.d0*datan(1.d0)  
-      kp_max = 200.d0
-      kp_min = 20.d0
-      km_max = 200.d0 
-      km_min = 20.d0
-      ypVar_max = 4.5d0
-      ypVar_min = 2.0d0
-      ymVar_max = 4.5d0 
-      ymVar_min = 2.d0
+      pi = 4.d0*datan(1.d0)
 
-      kp_max = 120.d0
+      ! ----- PHASE SPACE LIMITS -----
+      yp_min = 2.0d0
+      yp_max = 4.5d0
+      ym_min = 2.0d0
+      ym_max = 4.5d0
       kp_min = 20.d0
-      km_max = 120.d0 
+      kp_max = 120.d0
       km_min = 20.d0
-      
-c     -----------------------------------------------------------------
-      ypVar   = yp_min + (yp_max - yp_min)*x(1)
-      ymVar   = ym_min + (ym_max - ym_min)*x(2)
+      km_max = 120.d0
+
+      ! ----- TRANSFORMATION x_i -> physical variables -----
+      ypVar = yp_min + (yp_max - yp_min)*x(1)
+      ymVar = ym_min + (ym_max - ym_min)*x(2)
       ktp   = kp_min + (kp_max - kp_min)*x(3)
       ktm   = km_min + (km_max - km_min)*x(4)
-      phip = 2.d0*pi*x(5)
-      phim = 2.d0*pi*x(6)
-c     =================================================================
-c     jacobian: x(n) ----> phase space
-c     =================================================================
-      jac = (yp_max - yp_min)*(ym_max - ym_min)*(kp_max - kp_min)
-     &      *(km_max - km_min)*((2.d0*pi)**2.d0)
+      phip  = 2.d0*pi*x(5)
+      phim  = 2.d0*pi*x(6)
+
+      ! ----- JACOBIAN -----
+      ! Incluindo dφ e dkT para cada múon
+      jac = (yp_max - yp_min)*(ym_max - ym_min) * 
+     &      (kp_max - kp_min)*(km_max - km_min) * (2.d0*pi)**2
+
 
       ! TODO - Isso provavelmente está errado, estou misturando integração
       ! em pt com integração em kt. Verificar limites corretos.
@@ -380,7 +375,7 @@ c     -----------------------------------------------------------------
       write(*,*) 'M2, M, x1, x2: ', m2,mVar, x1, x2
 
       varJacobian = (2.d0/rs)*DSQRT(M2 + pt2)*DCOSH(y)
-      preIntegral = (x1/(x1 + x2))*varJacobian
+copt      preIntegral = (x1/(x1 + x2))*varJacobian
       
 ctest      write(*,*) 'Pre-integral: ', varJacobian, preIntegral
 
@@ -405,8 +400,8 @@ ctest            write(*,*) 'fora do range de M: ', mVar
       
 
       HadronicCrossSection =  FuncPartonLevelSigma(y,pt,mVar)  
-      Result = preIntegral*DileptonDecay(Mvar)*HadronicCrossSection
-      
+copt      Result = preIntegral*DileptonDecay(Mvar)*HadronicCrossSection
+      Result = varJacobian * 0.03366d0 * HadronicCrossSection   
 copt      SigTot = xp*xm*ktp*ktm*Result
       SigTot = Result
 ctest      write(*,*) 'Sigma total: ', SigTot, HadronicCrossSection
@@ -509,13 +504,13 @@ c     =================================================================
 c     =================================================================
 c     =================================================================
 
-      FUNCTION DileptonDecay(MVarr) 
+      FUNCTION DileptonDecay(MVar) 
       USE parameters
       IMPLICIT NONE
-      DOUBLE PRECISION DileptonDecay,MVarr, M, M2, MZ2 
+      DOUBLE PRECISION DileptonDecay,MVar, M, M2, MZ2 
       DOUBLE PRECISION DecayWidth, Branch, InvariantMassDist, Result
 
-      M = MVarr
+      M = MVar
       M2 = M*M
       Mz2 = Mz*Mz
 
@@ -703,7 +698,7 @@ c     ------------------------------------------------------------------
     
 
       Result = (upQuarkCS + downStrangeQuarksCS + 
-     &         charmQuarkCS + bottomQuarkCS )/(z**2.d0)
+     &         charmQuarkCS + bottomQuarkCS )/z!(z**2.d0)
 
       IntegrandHadronicCrossSection = Result
 
