@@ -1,80 +1,113 @@
-      MODULE parameters
-      IMPLICIT NONE 
-      DOUBLE PRECISION, PARAMETER :: pi = 4.d0*datan(1.d0)
-      DOUBLE PRECISION, PARAMETER :: pi2 = pi**2.d0
-      DOUBLE PRECISION, PARAMETER :: alfem = 1.d0/137.d0
-      DOUBLE PRECISION, PARAMETER :: sin2 = 0.23d0
-      DOUBLE PRECISION, PARAMETER :: aw = DASIN(DSQRT(sin2))
-      DOUBLE PRECISION, PARAMETER :: Mz = 91.2d0 !gauge boson mass -> Z0
-      !DOUBLE PRECISION, PARAMETER :: M = 80.4d0 !gauge boson mass -> W
-      DOUBLE PRECISION, PARAMETER :: rs = 13000.d0   !center of mass energy \sqrt{s}
-      END MODULE 
 
-      MODULE globals
+
+      MODULE hadglobals
             IMPLICIT NONE
             SAVE
             DOUBLE PRECISION  pt, x1, m
             DOUBLE PRECISION  x2
       END MODULE
-c     =================================================================
-c            total cross section for pp -> (Z0 -> l l_bar) X 
-c     =================================================================
+
+      MODULE parameters
+            IMPLICIT NONE 
+            SAVE
+            DOUBLE PRECISION, PARAMETER :: pi = 4.d0*datan(1.d0)
+            DOUBLE PRECISION, PARAMETER :: pi2 = pi**2.d0
+            DOUBLE PRECISION, PARAMETER :: alfem = 1.d0/137.d0
+            DOUBLE PRECISION, PARAMETER :: sin2 = 0.231
+            DOUBLE PRECISION, PARAMETER :: aw = DASIN(DSQRT(sin2))
+            DOUBLE PRECISION, PARAMETER :: Mz = 91.2d0 !gauge boson mass -> Z0
+            !DOUBLE PRECISION, PARAMETER :: M = 80.4d0 !gauge boson mass -> W
+            DOUBLE PRECISION, PARAMETER :: rs = 13000.d0   !center of mass energy \sqrt{s}
+      END MODULE 
+
+      MODULE globals
+            IMPLICIT NONE
+            SAVE
+            INTEGER :: ny, npt, nm, iDoHist
+            DOUBLE PRECISION :: y_min, y_max, dy
+            DOUBLE PRECISION :: pt_min, pt_max, dpt
+            DOUBLE PRECISION :: m_min, m_max, dm
+            DOUBLE PRECISION, DIMENSION(1000) :: sig_y, sig_pt, sig_m
+            DOUBLE PRECISION, DIMENSION(1000) :: sig_ypt1, sig_ypt2
+            DOUBLE PRECISION, DIMENSION(1000) :: sig_ypt3, sig_ypt4
+            DOUBLE PRECISION, DIMENSION(1000) :: sig_ypt5
+      END MODULE globals
+
+      MODULE vegasParams
+            IMPLICIT NONE 
+            SAVE 
+            double precision avgi,sd,chi2a
+            double precision alph 
+            double precision xl(11),xu(11),acc,si,swgt,schi,xi(50,11) 
+            integer ncall,itmx,nprn,ndev,it,ndo 
+            integer ndmx, mds 
+            integer ncall1, ncall2, itmx1, itmx2 
+      END MODULE
+
+      MODULE gridsParams
+            IMPLICIT NONE 
+            SAVE 
+            INTEGER, parameter :: nPoints = 20
+            DOUBLE PRECISION :: ent(nPoints + nPoints + nPoints)
+            DOUBLE PRECISION :: ptGrid(nPoints)
+            DOUBLE PRECISION :: yGrid(nPoints)
+            DOUBLE PRECISION :: mGrid(nPoints)
+            DOUBLE PRECISION :: PartonLevelGrid(nPoints,nPoints,nPoints)
+      END MODULE
+
+c---  Total cross section for pp -> (Z0 -> l l_bar) X 
       PROGRAM sigtot_pp_Z0   
+      USE globals
+      use gridsParams
       IMPLICIT NONE
 
       double precision vegasIntegrand 
-      integer iset
 
 
-c     =================================================================
-c     VEGAS definitions
+c---     VEGAS definitions
+C      double precision avgi,sd,chi2a
+C      double precision alph 
+C      double precision xl,xu,acc,si,swgt,schi,xi 
+C      integer ncall,itmx,nprn,ndev,it,ndo 
+C      integer ndmx, mds 
+c      integer ncall1, ncall2, itmx1, itmx2 
 c     -----------------------------------------------------------------
-      double precision avgi,sd,chi2a
-      double precision x(3),wgt 
-      double precision alph, pi 
-      double precision xl,xu,acc,si,swgt,schi,xi 
+C      common/bveg1/ncall,itmx,nprn,ndev,xl(11),xu(11),acc
+C      common/bveg2/it,ndo,si,swgt,schi,xi(50,11)
+C      common/bveg3/alph,ndmx,mds
 c     -----------------------------------------------------------------
-      integer ncall,itmx,nprn,ndev,it,ndo 
-      integer ndmx, mds 
-      integer ncall1, ncall2, itmx1, itmx2,ihist 
-c     -----------------------------------------------------------------
-      common/bveg1/ncall,itmx,nprn,ndev,xl(11),xu(11),acc
-      common/bveg2/it,ndo,si,swgt,schi,xi(50,11)
-      common/bveg3/alph,ndmx,mds
-c     =================================================================
-
+      integer nprn, ncall, itmx, ndev, ndo, ndmx, mds, it, i
+      double precision xl(11), xu(11), acc, alph, si, swgt, schi
+      double precision xi(50,11), avgi,sd,chi2a
+      common /bveg1/ ncall, itmx, nprn, ndev, xl, xu, acc
+      common /bveg2/ it, ndo, si, swgt, schi, xi
+      common /bveg3/ alph, ndmx, mds
 
 
 
 c     =================================================================
 c     common blocks (for Bining process)
 c     -----------------------------------------------------------------
-      double precision y,y_min,y_max,dy,sum_y
-      double precision pt,pt_min,pt_max,dpt,sum_pt
-      double precision m,m_min,m_max,dm
-      double precision sig_y(1000),sig_pt(1000), sig_m(1000)
-      double precision sig_ypt1(1000),sig_ypt2(1000),sig_ypt3(1000)
-      double precision sig_ypt4(1000),sig_ypt5(1000)
+cold      INTEGER :: iy, ipt, im, ny, npt, nm, iDoHist
+      INTEGER :: iy, ipt, im, iset
+cold      DOUBLE PRECISION :: y_min, y_max, dy, pt_min, pt_max, y,pt,m
+cold      DOUBLE PRECISION :: dpt, m_min, m_max, dm
+      DOUBLE PRECISION :: sum_y, sum_pt, y , pt , m
+cold      DOUBLE PRECISION, DIMENSION(1000) :: sig_y, sig_pt, sig_m
+cold      DOUBLE PRECISION, DIMENSION(1000) :: sig_ypt1, sig_ypt2, sig_ypt3
+cold      DOUBLE PRECISION, DIMENSION(1000) :: sig_ypt4, sig_ypt5
+
 c     -----------------------------------------------------------------
-      integer ipt,iy,im
-      integer ny,npt,nm
-      integer iDoHist 
+cold      common/hist/iDoHist,sig_y,sig_pt,sig_m,
+cold     &           sig_ypt1,sig_ypt2,sig_ypt3,sig_ypt4,sig_ypt5 
 c     -----------------------------------------------------------------
-      common/hist/iDoHist,sig_y,sig_pt,sig_m,
-     &           sig_ypt1,sig_ypt2,sig_ypt3,sig_ypt4,sig_ypt5 
-c     -----------------------------------------------------------------
-	common/bin/ny,y_min,y_max,npt,pt_min,pt_max,dy,dpt,
-     &           nm,m_min,m_max,dm
+cold	common/bin/ny,y_min,y_max,npt,pt_min,pt_max,dy,dpt,
+cold     &           nm,m_min,m_max,dm
     
 c     =================================================================
 
-
-
       EXTERNAL vegasIntegrand
 
-copt      iset = 400001 !KS-2013-linear 
-copt      call TMDinit(iset)
-copt      call TMDset(iset)
 
       iset = 400001 !KS-2013-linear 
       call TMDinit(iset)
@@ -121,14 +154,22 @@ c     =================================================================
 c     =================================================================
 c     FILES WITH RESULTS
 c     -----------------------------------------------------------------
-      open(unit=41,file='Output/dsig_dy.dat',status='unknown')
-      open(unit=42,file='Output/dsig_dpt.dat',status='unknown')
-      open(unit=43,file='Output/dsig_dm.dat',status='unknown')
-      open(unit=21,file='Output/dsig_dydpt_y2p25.dat',status='unknown')
-      open(unit=22,file='Output/dsig_dydpt_y2p75.dat',status='unknown')
-      open(unit=23,file='Output/dsig_dydpt_y3p25.dat',status='unknown')
-      open(unit=24,file='Output/dsig_dydpt_y3p75.dat',status='unknown')
-      open(unit=25,file='Output/dsig_dydpt_y4p25.dat',status='unknown')
+      open(unit=41,
+     & file='../pp_Z0jet/Output/dsig_dy.dat',status='unknown')
+      open(unit=42,
+     & file='../pp_Z0jet/Output/dsig_dpt.dat',status='unknown')
+      open(unit=43,
+     & file='../pp_Z0jet/Output/dsig_dm.dat',status='unknown')
+      open(unit=21,
+     & file='../pp_Z0jet/Output/dsig_dydpt_y2p25.dat',status='unknown')
+      open(unit=22,
+     & file='../pp_Z0jet/Output/dsig_dydpt_y2p75.dat',status='unknown')
+      open(unit=23,
+     & file='../pp_Z0jet/Output/dsig_dydpt_y3p25.dat',status='unknown')
+      open(unit=24,
+     & file='../pp_Z0jet/Output/dsig_dydpt_y3p75.dat',status='unknown')
+      open(unit=25,
+     & file='../pp_Z0jet/Output/dsig_dydpt_y4p25.dat',status='unknown')
 
 c     =================================================================
 c     building spectra
@@ -234,9 +275,9 @@ c     -----------------------------------------------------------------
 
       ! ----- JACOBIAN -----
       ! Incluindo dφ e dkT para cada múon
-      jac = (yp_max - yp_min)*(ym_max - ym_min) * 
-     &      (kp_max - kp_min)*(km_max - km_min) * (2.d0*pi)**2
-
+      jac = (yp_max - yp_min)*(ym_max - ym_min) 
+     &  * ( kp_max - kp_min ) * ( km_max - km_min )
+     &  * ( 2.d0 * pi * ktp ) * ( 2.d0 * pi * ktm )
 
       ! TODO - Isso provavelmente está errado, estou misturando integração
       ! em pt com integração em kt. Verificar limites corretos.
@@ -260,11 +301,12 @@ c     =================================================================
 
       SUBROUTINE IntegrandSigma(sigTot,ypVar,ymVar,ktpVar,ktmVar,
      & phipVar,phimVar,physicalWgt) 
+      USE globals
       USE parameters
       IMPLICIT NONE
 
-      double precision yVar, pt2Var, m2Var
-      DOUBLE PRECISION FuncPartonLevelSigma
+
+      DOUBLE PRECISION InterpolateGrid
       DOUBLE PRECISION sigTot,ypVar,ymVar,phipVar,phimVar,
      &                 ktpVar,ktmVar,physicalWgt
       DOUBLE PRECISION varJacobian, preIntegral,Result,x1,x2
@@ -277,33 +319,10 @@ c     =================================================================
       DOUBLE PRECISION mp, mm
       DOUBLE PRECISION mperp_p, mperp_m, mperp_p2, mperp_m2
       DOUBLE PRECISION xp, xm, xf, mVar
+      DOUBLE PRECISION pt, m, y, FuncPartonLevelSigma
       
 
-c     =================================================================
-c     common blocks (for Bining process)
-c     -----------------------------------------------------------------
-      double precision y,y_min,y_max,dy,sum_y
-      double precision pt,pt_min,pt_max,dpt,sum_pt
-      double precision m,m_min,m_max,dm
-      double precision sig_y(1000),sig_pt(1000), sig_m(1000)
-      double precision sig_ypt1(1000),sig_ypt2(1000),sig_ypt3(1000)
-      double precision sig_ypt4(1000),sig_ypt5(1000)
-c     -----------------------------------------------------------------
       integer ipt,iy,im
-      integer ny,npt,nm
-      integer iDoHist 
-c     -----------------------------------------------------------------
-      common/hist/iDoHist,sig_y,sig_pt,sig_m,
-     &           sig_ypt1,sig_ypt2,sig_ypt3,sig_ypt4,sig_ypt5 
-c     -----------------------------------------------------------------
-	common/bin/ny,y_min,y_max,npt,pt_min,pt_max,dy,dpt,
-     &           nm,m_min,m_max,dm
-    
-c     =================================================================
-
-      
-      COMMON/xbj/x2
-      COMMON/hadronicVariables/pt, x1, M
 
       EXTERNAL DileptonDecay,DGAUSS, FuncPartonLevelSigma
              
@@ -320,7 +339,7 @@ c     =================================================================
       ym = ymVar
 
       ktp2 = ktp**2.d0 
-      ktm2 = ktm**2.d0DileptonDecay
+      ktm2 = ktm**2.d0
       ktpx = ktp*DCOS(phip)
       ktpy = ktp*DSIN(phip)
       ktmx = ktm*DCOS(phim)
@@ -354,7 +373,7 @@ c     -----------------------------------------------------------------
       pty = ktpy - ktmy
       pt  = DSQRT(ptx**2.d0 + pty**2.d0)
       pt2 = pt**2.d0
-      pt = DSQRT(pt2Var)
+      pt = DSQRT(pt2)
 
 
       y  = DLOG(xf*(rs/DSQRT(pt2 + M2)))
@@ -371,8 +390,8 @@ c     -----------------------------------------------------------------
      
       mVar = DSQRT(m2) 
 
-      WRITE(*,*) 'Kinematics: ', y, pt, M, x1, x2
-      write(*,*) 'M2, M, x1, x2: ', m2,mVar, x1, x2
+ctest      WRITE(*,*) 'Kinematics: ', y, pt, M, x1, x2
+ctest      write(*,*) 'M2, M, x1, x2: ', m2,mVar, x1, x2
 
       varJacobian = (2.d0/rs)*DSQRT(M2 + pt2)*DCOSH(y)
 copt      preIntegral = (x1/(x1 + x2))*varJacobian
@@ -401,9 +420,10 @@ ctest            write(*,*) 'fora do range de M: ', mVar
 
       HadronicCrossSection =  FuncPartonLevelSigma(y,pt,mVar)  
 copt      Result = preIntegral*DileptonDecay(Mvar)*HadronicCrossSection
-      Result = varJacobian * 0.03366d0 * HadronicCrossSection   
+      Result = varJacobian * 0.0336d0 * HadronicCrossSection   
 copt      SigTot = xp*xm*ktp*ktm*Result
       SigTot = Result
+      write(*,*)'Result: ',Result*physicalWgt*10.d0
 ctest      write(*,*) 'Sigma total: ', SigTot, HadronicCrossSection
 ctest      write(*,*) sigTot, Result
 
@@ -538,7 +558,7 @@ c     ==================================================================
 c     parton level cross section function
 c     ==================================================================
       function FuncPartonLevelSigma(yVar,ptVar,mVar)
-      use globals
+      use hadglobals
       use parameters
       double precision FuncPartonLevelSigma, ptVar, yVar, mVar
       double precision pt2, M2
@@ -576,7 +596,7 @@ c     =================================================================
 c     =================================================================
 
       FUNCTION IntegrandHadronicCrossSection(alf)
-      use globals
+      use hadglobals
 
       USE parameters
       IMPLICIT NONE 
@@ -620,7 +640,7 @@ c     ------------------------------------------------------------------
 c     This is the parton distribution function (PDF) initialization
 c     ------------------------------------------------------------------   
       
-      call evolvePDF(xf,q,f)
+      call evolvePDF(xf,q**2.d0,f)
       
       u = f(2)        !u
       d = f(1)        !d
@@ -889,7 +909,7 @@ c     ==================================================================
 
 
       FUNCTION ugd(akt) !WW
-      use globals
+      use hadglobals
 
       use parameters
       IMPLICIT NONE

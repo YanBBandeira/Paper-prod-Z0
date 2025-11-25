@@ -21,11 +21,10 @@
       program PL_grids_kslinear
       use parameters
       
-      integer, parameter :: nPoints = 50
+      integer, parameter :: nPoints = 80
 c     ------------------------------------------------------------------
       double precision y(nPoints), y_min, y_max, dy 
       double precision pt(nPoints), pt_min, pt_max, dpt
-      double precision m(nPoints), m_min, m_max, dm
       double precision partonLevelSigma,FuncPartonLevelSigma 
 
       integer iy, ipt,im, iset
@@ -46,7 +45,7 @@ c     ------------------------------------------------------------------
 
       dy = (y_max - y_min)/(nPoints)
       dpt = (pt_max - pt_min)/(nPoints)
-      dm = (m_max - m_min)/(nPoints)
+copt      dm = (m_max - m_min)/(nPoints)
 
 c     ==================================================================
 c     Output files
@@ -65,19 +64,16 @@ C     Usar as flags -O3 -fopenmp -march=native -ffast-math -funroll-loops
       
             do ipt = 1,nPoints
       pt(ipt) = 10.d0**(pt_min + (ipt-1)*dpt) - 1.d0
-                  do im = 1,nPoints
-      m(im) = m_min + (im-1)*dm
-      partonLevelSigma = FuncPartonLevelSigma(y(iy),pt(ipt),m(im))
+
+      partonLevelSigma = FuncPartonLevelSigma(y(iy),pt(ipt))
 
 
       write(*,*) '-------------------------------------'
-      write(*,*) 'Computing grid point number ', iy, ipt, im,
-     *  ' of ', nPoints, nPoints, nPoints
-      write(*,*) 'Computing point: y = ', y(iy), ' pt = ', pt(ipt),
-     *  ' m = ', m(im)  
+      write(*,*) 'Computing grid point number ', iy, ipt,
+     *  ' of ', nPoints, nPoints
+      write(*,*) 'Computing point: y = ', y(iy), ' pt = ', pt(ipt)
       write(*,*)'Parton level cross section (pb/GeV): ',partonLevelSigma
-      write(11,*) y(iy), pt(ipt), m(im), partonLevelSigma
-                  end do
+      write(11,*) y(iy), pt(ipt), partonLevelSigma
             end do 
       end do
 100   format(2x,6(E10.4,2x))
@@ -87,7 +83,7 @@ C     Usar as flags -O3 -fopenmp -march=native -ffast-math -funroll-loops
 c     ==================================================================
 c     parton level cross section function
 c     ==================================================================
-      function FuncPartonLevelSigma(yVar,ptVar,mVar)
+      function FuncPartonLevelSigma(yVar,ptVar)
       use globals
       use parameters
       double precision FuncPartonLevelSigma, ptVar, yVar, mVar
@@ -100,7 +96,7 @@ c     ==================================================================
       pt = ptVar
       y  = yVar
 
-      M  = mVar
+      M  = MZ
       M2 = M**2.d0
       pt2 = pt**2.d0
 
@@ -248,7 +244,7 @@ c     ------------------------------------------------------------------
     
 
       Result = (upQuarkCS + downStrangeQuarksCS + 
-     &         charmQuarkCS + bottomQuarkCS )/(z**2.d0)
+     &         charmQuarkCS + bottomQuarkCS )/z
 
       IntegrandHadronicCrossSection = Result
 
@@ -478,7 +474,7 @@ ctest      write(*,*) 'UGD', ugd, pre_ugd, F_KS(x2,akt), akt2, alphas
 
       external TMDnumberPDF
       
-      if(akt.lt.399.d0.or.akt.gt.0.011d0)then
+      if(akt.lt.499.d0.or.akt.gt.0.011d0)then
       if(x2.gt.1.d-2.or.x2.lt.1.d-8) then
       F_KS = 0.d0 
 

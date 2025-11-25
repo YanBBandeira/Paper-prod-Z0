@@ -38,12 +38,12 @@
       MODULE gridsParams
             IMPLICIT NONE 
             SAVE 
-            INTEGER, parameter :: nPoints = 50
-            DOUBLE PRECISION :: ent(nPoints + nPoints + nPoints)
+            INTEGER, parameter :: nPoints = 80
+            DOUBLE PRECISION :: ent(nPoints + nPoints)
             DOUBLE PRECISION :: ptGrid(nPoints)
             DOUBLE PRECISION :: yGrid(nPoints)
             DOUBLE PRECISION :: mGrid(nPoints)
-            DOUBLE PRECISION :: PartonLevelGrid(nPoints,nPoints,nPoints)
+            DOUBLE PRECISION :: PartonLevelGrid(nPoints,nPoints)
       END MODULE
 
 c---  Total cross section for pp -> (Z0 -> l l_bar) X 
@@ -274,8 +274,8 @@ c     -----------------------------------------------------------------
       ymVar = ymVar_min + (ymVar_max - ymVar_min)*x(2)
       ktp   = kp_min + (kp_max - kp_min)*x(3)
       ktm   = km_min + (km_max - km_min)*x(4)
-      phip  = pi*x(5)
-      phim  = pi*x(6)
+      phip  = 2.d0*pi*x(5)
+      phim  = 2.d0*pi*x(6)
 
       
 ctest      write(*,*) ypVar, ymVar, ktp, ktm, phip, phim
@@ -283,7 +283,8 @@ c     =================================================================
 c     jacobian: x(n) ----> phase space
 c     =================================================================
       jac = (ypVar_max - ypVar_min)*(ymVar_max - ymVar_min) 
-     & *(kp_max - kp_min) * (km_max - km_min)*((pi)**2.d0)
+     &  * ( kp_max - kp_min ) * ( km_max - km_min )
+     &  * ( 2.d0 * pi * ktp ) * ( 2.d0 * pi * ktm )
 
       ! TODO - Isso provavelmente está errado, estou misturando integração
       ! em pt com integração em kt. Verificar limites corretos.
@@ -469,7 +470,7 @@ ctest      write(*,*) 'Pre-integral: ', varJacobian, preIntegral
       Result = HadronicCrossSection*DileptonDecay(Mvar)
 ctest      write(*,*) DileptonDecay(Mvar), HadronicCrossSection   
 ctest      print *, ktp, ktm
-      SigTot = Result*ktp*ktm/(xf*pt)
+      SigTot = Result*preIntegral
 ctest      write(*,*) 'Sigma total: ', SigTot, HadronicCrossSection
 ctest      write(*,*) sigTot, Result
 
@@ -601,9 +602,9 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       use gridsParams
       implicit none
 
-      integer, parameter :: narg=3
+      integer, parameter :: narg=2
       
-      integer :: nent(3)
+      integer :: nent(2)
 
 
       double precision arg(narg)
@@ -619,11 +620,11 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
 
       nent(1) = nPoints
       nent(2) = nPoints
-      nent(3) = nPoints
+copt      nent(3) = nPoints
 
       arg(1) = y
       arg(2) = pt
-      arg(3) = m
+copt      arg(3) = m
 
       InterpolateGrid = DFINT(narg,arg,nent,ent,PartonLevelGrid)
 ctest      write(*,*) 'Interpolated value: ', InterpolateGrid, y, pt, m
@@ -647,15 +648,14 @@ c     *  file="Grids/DatFiles/kslinear_grid.dat",status="old")
       
       do i = 1, nPoints
             do j = 1, nPoints
-                  do k = 1, nPoints
-      read(iFile,*) yVar, ptVar, mVar, PartonLevelVar
+copt                  do k = 1, nPoints
+      read(iFile,*) yVar, ptVar, PartonLevelVar
       yGrid(i) = yVar
       ptGrid(j) = ptVar
-      mGrid(k) = mVar
-      PartonLevelGrid(i,j,k) = PartonLevelVar
+      PartonLevelGrid(i,j) = PartonLevelVar
 ctest            write(*,*) 'Reading grid point:', i, j, k
 ctest            write(*,*) 'Grid', yVar, ptVar, mVar, PartonLevelVar
-                  end do
+copt                  end do
             end do
       end do
       close(iFile)
@@ -667,9 +667,9 @@ ctest            write(*,*) 'Grid', yVar, ptVar, mVar, PartonLevelVar
          ent(nPoints + j) = ptGrid(j)
       end do
 
-      do k = 1, nPoints
-         ent(nPoints + nPoints + k) = mGrid(k)
-      end do
+copt      do k = 1, nPoints
+copt         ent(nPoints + nPoints + k) = mGrid(k)
+copt      end do
       
       end subroutine
 
