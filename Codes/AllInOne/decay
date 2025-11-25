@@ -1,0 +1,168 @@
+      ! ============================================================
+      !  MODULE: Decay Z -> mu+ mu-
+      !  Gera o decaimento isotrópico do Z, faz o boost para o lab
+      !  e aplica cortes em pT e eta dos múons.
+      !
+      !  Autor: ChatGPT (otimizado para sistemas k_T-factorization)
+      ! ============================================================
+
+      MODULE ZDecay
+            IMPLICIT NONE
+            SAVE
+
+            DOUBLE PRECISION, PARAMETER :: pi = 4d0*DATAN(1d0)
+            DOUBLE PRECISION, PARAMETER :: mMu = 0.10566d0    ! GeV
+            DOUBLE PRECISION, PARAMETER :: MZ = 91.1876d0     ! GeV (valor padrão)
+            
+      CONTAINS
+
+      ! ------------------------------------------------------------
+      ! Função util: produto escalar de 4-vetores
+      ! ------------------------------------------------------------
+      FUNCTION Dot4(a,b)
+            DOUBLE PRECISION Dot4, a(4), b(4)
+            Dot4 = a(1)*b(1) - a(2)*b(2) - a(3)*b(3) - a(4)*b(4)
+      END FUNCTION Dot4
+
+
+      ! ------------------------------------------------------------
+      ! Boost Lorentz geral: p' = Λ p
+      ! ------------------------------------------------------------
+      SUBROUTINE Boost(pIn, beta, pOut)
+            DOUBLE PRECISION pIn(4), pOut(4), beta(3)
+            DOUBLE PRECISION b2, gamma, bp
+
+            b2 = beta(1)**2 + beta(2)**2 + beta(3)**2
+            IF (b2 >= 1d0) THEN
+                  print*, "ERROR: velocidade >= c no boost!"
+                  STOP
+            ENDIF
+
+            gamma = 1d0 / DSQRT(1d0 - b2)
+            bp = beta(1)*pIn(2) + beta(2)*pIn(3) + beta(3)*pIn(4)
+
+            pOut(1) = gamma*(pIn(1) - bp)
+            pOut(2) = pIn(2) + ((gamma-1d0)/b2)*bp*beta(1) - gamma*beta(1)*pIn(1)
+            pOut(3) = pIn(3) + ((gamma-1d0)/b2)*bp*beta(2) - gamma*beta(2)*pIn(1)
+            pOut(4) = pIn(4) + ((gamma-1d0)/b2)*bp*beta(3) - gamma*beta(3)*pIn(1)
+      END SUBROUTINE Boost
+
+
+      ! ------------------------------------------------------------
+      ! Retorna pT = sqrt(px^2 + py^2)
+      ! ------------------------------------------------------------
+      FUNCTION pT(p)
+            DOUBLE PRECISION pT, p(4)
+            pT = DSQRT(p(2)**2 + p(3)**2)
+      END FUNCTION pT
+
+
+      ! ------------------------------------------------------------
+      ! Rapidez / pseudorrapidez
+      ! ------------------------------------------------------------
+      FUNCTION eta(p)
+            DOUBLE PRECISION eta, p(4), pAbs
+            pAbs = DSQRT(p(2)**2 + p(3)**2 + p(4)**2)
+
+            IF (pAbs == ABS(p(4))) THEN
+                  eta = SIGN(1d0, p(4))*1d20
+            ELSE
+                  eta = 0.5d0 * LOG((pAbs + p(4)) / (pAbs - p(4)))
+            ENDIF
+      END FUNCTION eta
+
+
+      ! ============================================================
+      ! FUNÇÃO PRINCIPAL:
+      !
+      !     acceptance = ZDecayAndCuts(yZ, pTZ)
+      !
+      !  Entrada:
+      !     yZ  – rapidez do Z
+      !     pTZ – momento transverso do Z
+      !
+      !  Saída:
+      !     1 = múons passam nos cortes
+      !     0 = evento rejeitado
+      !
+      ! ============================================================
+      FUNCTION ZDecayAcceptance(yZ, pTZ)
+            IMPLICIT NONE
+            DOUBLE PRECISION ZDecayAcceptance
+            DOUBLE PRECISION yZ, pTZ
+
+            DOUBLE PRECISION :: mT, pz, EZ
+            DOUBLE PRECISION :: beta(3)
+            DOUBLE PRECISION :: pMu1(4), pMu2(4)
+            DOUBLE PRECISION :: pMu1_lab(4), pMu2_lab(4)
+            DOUBLE PRECISION :: EStar, pStar
+            DOUBLE PRECISION :: costh, sinth, phi
+            DOUBLE PRECISION :: r1, r2
+
+            ! --------------------------------------------
+            ! Kinematics of Z in lab
+            ! --------------------------------------------
+            mT = DSQRT(MZ**2 + pTZ**2)
+            pz = mT * DSINH(yZ)
+            EZ = mT * DCOSH(yZ)
+
+            beta(1) = pTZ / EZ          ! px/E
+            beta(2) = 0d0               ! py/E (definimos no plano x)
+            beta(3) = pz  / EZ          ! pz/E
+
+            ! --------------------------------------------
+            ! Z → μ μ isotrópico no CM do Z
+            ! --------------------------------------------
+            EStar = MZ / 2d0
+            pStar = DSQRT(EStar**2 - mMu**2)
+
+            CALL RANDOM_NUMBER(r1)
+            CALL RANDOM_NUMBER(r2)
+
+            costh = 2d0*r1 - 1d0
+            sinth = DSQRT(1d0 - costh**2)
+            phi   = 2d0*pi*r2
+
+            ! 4-vetores no centro de massa
+            pMu1(1) = EStar
+            pMu1(2) =  pStar*sinth*DCOS(phi)
+            pMu1(3) =  pStar*sinth*DSIN(phi)
+            pMu1(4) =  pStar*costh
+
+            pMu2(1) = EStar
+            pMu2(2) = -pMu1(2)
+            pMu2(3) = -pMu1(3)
+            pMu2(4) = -pMu1(4)
+
+            ! --------------------------------------------
+            ! Boost para o laboratório
+            ! --------------------------------------------
+            CALL Boost(pMu1, beta, pMu1_lab)
+            CALL Boost(pMu2, beta, pMu2_lab)
+
+            ! --------------------------------------------
+            ! Aplicar cortes experimentais LHCb (exemplo)
+            ! --------------------------------------------
+            IF ( pT(pMu1_lab) < 20d0 ) THEN
+                  ZDecayAcceptance = 0d0
+                  RETURN
+            ENDIF
+            IF ( pT(pMu2_lab) < 20d0 ) THEN
+                  ZDecayAcceptance = 0d0
+                  RETURN
+            ENDIF
+
+            IF ( eta(pMu1_lab) < 2d0 .OR. eta(pMu1_lab) > 4.5d0 ) THEN
+                  ZDecayAcceptance = 0d0
+                  RETURN
+            ENDIF
+            IF ( eta(pMu2_lab) < 2d0 .OR. eta(pMu2_lab) > 4.5d0 ) THEN
+                  ZDecayAcceptance = 0d0
+                  RETURN
+            ENDIF
+
+            ! Se passou em tudo:
+            ZDecayAcceptance = 1d0
+      END FUNCTION ZDecayAcceptance
+
+      END MODULE ZDecay

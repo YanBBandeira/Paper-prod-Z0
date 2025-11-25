@@ -353,7 +353,39 @@ c     =================================================================
 
       m2 = mperp_p**2.d0 + mperp_m**2.d0 
      &       + 2.d0*mperp_p*mperp_m*DCOSH(yp - ym) - pt2
+
+      M2 = (Ep + Em)**2 - (pxp + pxm)**2 - (pyp + pym)**2 - (pzp + pzm)**2
+
      
+
+     !---- Momenta of the muons  ------------------------------------------
+      pxp = ktp * DCOS(phip)
+      pyp = ktp * DSIN(phip)
+      pzp = ktp * DSINH(yp)
+      Ep  = DSQRT(mp*mp + pxp**2 + pyp**2 + pzp**2)
+
+      pxm = ktm * DCOS(phim)
+      pym = ktm * DSIN(phim)
+      pzm = ktm * DSINH(ym)
+      Em  = DSQRT(mm*mm + pxm**2 + pym**2 + pzm**2)
+
+      pt_mu_p = DSQRT(pxp**2 + pyp**2)
+      pt_mu_m = DSQRT(pxm**2 + pym**2)
+
+      pabs_p = DSQRT(pxp**2 + pyp**2 + pzp**2)
+      eta_p = 0.5d0 * DLOG((pabs_p + pzp) / (pabs_p - pzp))
+
+      pabs_m = DSQRT(pxm**2 + pym**2 + pzm**2)
+      eta_m = 0.5d0 * DLOG((pabs_m + pzm) / (pabs_m - pzm))
+
+      ! ---------- Physical cuts on the real muons --------------------------
+      if (pt_mu_p .lt. 20.d0) goto 101
+      if (pt_mu_m .lt. 20.d0) goto 101
+
+      if (eta_p .lt. 2.0d0 .or. eta_p .gt. 4.5d0) goto 101
+      if (eta_m .lt. 2.0d0 .or. eta_m .gt. 4.5d0) goto 101
+
+
 c     -----------------------------------------------------------------
       xp = (ktp/rs)*DEXP(yp)
       xm = (ktm/rs)*DEXP(ym)
@@ -423,7 +455,7 @@ copt      Result = preIntegral*DileptonDecay(Mvar)*HadronicCrossSection
       Result = varJacobian * 0.0336d0 * HadronicCrossSection   
 copt      SigTot = xp*xm*ktp*ktm*Result
       SigTot = Result
-      write(*,*)'Result: ',Result*physicalWgt*10.d0
+      
 ctest      write(*,*) 'Sigma total: ', SigTot, HadronicCrossSection
 ctest      write(*,*) sigTot, Result
 
