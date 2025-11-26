@@ -38,10 +38,11 @@
       !-----------------------------------------------------
       ! Preparação
       !-----------------------------------------------------
-      aw = asin(sqrt(sin2))
-      npt = 50
-      allocate(ptz_vals(npt))
-      allocate(dsigma_dpt(npt))
+      nPoints = 40
+      pt_min = dlog10(1.d0)
+      pt_max = dlog10(300.d0)
+
+      dpt = (pt_max - pt_min)/(nPoints)
 
       iset = 400001 !KS-2013-linear 
       call TMDinit(iset)
@@ -55,19 +56,31 @@
       !-----------------------------------------------------
       ! Loop em pT
       !-----------------------------------------------------
+      
+      Gevtopb = 0.389d9 !GeV-2 to pb
+      !DADMUL routine parameters:
+      N = 2               !Dimension
+      IMINPTS = 500      !Min number of points
+      IMAXPTS = 5000   !Max number of points
+      EPS = 1.d-3          !Numerical precision    
+      IWK = 110000        !Work array dimension
+      A(1) = 2.0d0       !Lower limit for variable 1 
+      A(2) = 4.5d0       !Lower limit for variable 2
+      B(1) = 60.0d0       !Upper limit for variable 1
+      B(2) = 120.0d0       !Upper limit for variable 2
+    
       do i = 1, npt
       ptZ = ptz_vals(i)
-      call DADMUL(integrand, 60.0d0, 120.0d0, y_min, y_max, ptZ, dsigma_dpt(i))
-      end do
-
-      !-----------------------------------------------------
-      ! Saída (pode ser adaptada para gráfico)
-      !-----------------------------------------------------
-      do i = 1, npt
+      CALL DADMUL(Integrand,N,A,B,
+     * IMINPTS,IMAXPTS,EPS,WK,IWK,Result,
+     * RELERR,NFNEVL,IFFAIL)
+     
+      dsigma = Gevtopb*Result
+      write(*,*)
       write(*,'(F10.4,2X,E12.5)') ptz_vals(i), dsigma_dpt(i)
       end do
-
-      contains
+      
+      end program z_pt_distribution
 
       !-----------------------------------------------------
       ! Função de decaimento dileptônico
@@ -101,20 +114,34 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       ! Integrando
       ! x: M, y: y_Z
       !-----------------------------------------------------
-      function integrand(yZ,mZ)
+      function integrand(N,X)
       implicit none
-      external FuncPartonLevelSigma
+      INTEGER N 
+      DOUBLE PRECISION Int, akt, theta, kv, pi
+      DOUBLE PRECISION integrand, X, HadronicCrossSection,
+     &                 FuncPartonLevelSigma, dilepton_decay
+      DIMENSION X(2)
+      EXTERNAL FuncPartonLevelSigma
+      pi = 4.d0*datan(1.d0)
+
+      !Integration variables 
+      yZ    = X(1) 
+      MZZ   = X(2) 
       
+ctest      write(*,*) 'int var ',x(2), x(1) 
+
       
-      integrand = dilepton_decay(MZ)*FuncPartonLevelSigma(yZ, ptZ, MZ)
+      HadronicCrossSection = dilepton_decay(MZ)
+     &      *FuncPartonLevelSigma(yZ, ptZ, MZZ)
+      
+      integrand = HadronicCrossSection*2.d0*Mzz
       return
       end
 
-      end program z_pt_distribution
 
 
 
-      function FuncPartonLevelSigma(yVar,ptVar)
+      function FuncPartonLevelSigma(yVar,ptVar,mVar)
       use globals
       use parameters
       double precision FuncPartonLevelSigma, ptVar, yVar, mVar
@@ -126,20 +153,20 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       
       pt = ptVar
       y  = yVar
+      M  = mVar
 
-      M  = MZ
       M2 = M**2.d0
       pt2 = pt**2.d0
 
       sqrt_M2pT2 = DSQRT(M2 + pt2) 
       x1 = (sqrt_M2pT2/RS)*DEXP(y)
       x2 = (sqrt_M2pT2/RS)*DEXP(-y)
-
+      VarJacobian = (2.d0/rs)*DSQRT(MZZ2 + pt2)*DCOSH(y)
+      preIntegral = x1/(x1 + x2)
       result = dgauss(IntegrandHadronicCrossSection,x1,1.d0,1.d-4) 
               
     
-      units = 0.389d9 !GeV-2 to pb
-      FuncPartonLevelSigma = result*units
+      FuncPartonLevelSigma = preIntegral*result*VarJacobian
 ctest      write(*,*) 'Variables: ', pt, y, x1, x2,M
       return 
       end 
