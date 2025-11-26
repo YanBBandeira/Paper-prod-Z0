@@ -25,15 +25,15 @@
       use globals 
       implicit none
       integer, parameter :: nPoints = 40
-      integer iset, ipt
-      double precision ptZ(nPoints)
+      integer iset, ipt, NN
+      double precision ptZ
       double precision pt_min, pt_max, dpt
       double precision Gevtopb
-      double precision integrand,Result,dsigma
-      DOUBLE PRECISION A,B,WK,EPS,RELERR
+      double precision TestIntegrand,Result,dsigma
+      DOUBLE PRECISION AA,BB,WK,EPS,RELERR
       INTEGER          N,IWK,IMINPTS,IMAXPTS,IFFAIL,NFNEVL
-      DIMENSION A(2), B(2), WK(1100000)
-      external integrand
+      DIMENSION AA(2), BB(2), WK(1100000)
+      external TestIntegrand
       !-----------------------------------------------------
       ! Preparação
       !-----------------------------------------------------
@@ -53,23 +53,23 @@
       !-----------------------------------------------------
       ! Loop em pT
       !-----------------------------------------------------
-      open(unit=11,file='dsig_dpt',status='unknown')
+      open(unit=11,file='dsig_dpt.dat',status='unknown')
       Gevtopb = 0.389d9 !GeV-2 to pb
       !DADMUL routine parameters:
-      N = 2               !Dimension
+      NN = 2               !Dimension
       IMINPTS = 500      !Min number of points
       IMAXPTS = 5000   !Max number of points
       EPS = 1.d-3          !Numerical precision    
       IWK = 110000        !Work array dimension
-      A(1) = 2.0d0       !Lower limit for variable 1 
-      A(2) = 4.5d0       !Lower limit for variable 2
-      B(1) = 60.0d0       !Upper limit for variable 1
-      B(2) = 120.0d0       !Upper limit for variable 2
+      AA(1) = 0.0d0       !Lower limit for variable1 
+      AA(2) = 0.0d0       !Lower limit for variable 2
+      BB(1) = 1.0d0       !Upper limit for variable 1
+      BB(2) = 1.0d0       !Upper limit for variable 2
     
       do ipt = 1, nPoints
-      ptZ(ipt) = 10.d0**(pt_min + (ipt-1.d0)*dpt) - 1.d0
-      pt = ptZ(ipt)
-      CALL DADMUL(Integrand,N,A,B,
+      ptZ= 10.d0**(pt_min + (ipt-1.d0)*dpt) - .9d0
+      pt = ptZ
+      CALL DADMUL(TestIntegrand,NN,AA,BB,
      * IMINPTS,IMAXPTS,EPS,WK,IWK,Result,
      * RELERR,NFNEVL,IFFAIL)
      
@@ -112,29 +112,32 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       ! Integrando
       ! x: M, y: y_Z
       !-----------------------------------------------------
-      function integrand(N,X)
+      function TestIntegrand(NN,XX)
       use globals
       implicit none
-      INTEGER N 
-      DOUBLE PRECISION Int, akt, theta, kv, pi
-      DOUBLE PRECISION integrand, X, HadronicCrossSection,
+      INTEGER NN 
+      DOUBLE PRECISION TestIntegrand, XX, HadronicCrossSection,
      &                 FuncPartonLevelSigma, DileptonDecay
       DOUBLE PRECISION yZ, MZZ, ptZ
-      DIMENSION X(2)
+      double precision jac, pi
+      DIMENSION XX(2)
       EXTERNAL FuncPartonLevelSigma, DileptonDecay
       pi = 4.d0*datan(1.d0)
 
       !Integration variables 
-      yZ    = X(1) 
-      MZZ   = X(2) 
+      yZ    = 2.d0 + (4.5d0 - 2.d0)*XX(1) 
+      MZZ   = 60.d0 + (120.d0 - 60.d0)*XX(2) 
       ptz   = pt
-      write(*,*) 'int var ',yZ,MZZ,ptZ
+ctest      write(*,*) XX(1), XX(2), yZ, MZZ, ptZ
+ctest      write(*,*) 'int var ',yZ,MZZ,ptZ, pt
 
+      jac = (4.5d0 - 2.d0)*(120.d0 - 60.d0)
       
-      HadronicCrossSection = DileptonDecay(MZZ)
+      HadronicCrossSection = jac*DileptonDecay(MZZ)
      &      *FuncPartonLevelSigma(yZ, ptZ, MZZ)
       
-      integrand = HadronicCrossSection*2.d0*Mzz
+      TestIntegrand = HadronicCrossSection*2.d0*Mzz
+ctest      write(*,*) HadronicCrossSection, Mzz, integrand
       return
       end
 
@@ -168,7 +171,7 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
               
     
       FuncPartonLevelSigma = preIntegral*result*VarJacobian
-ctest      write(*,*) 'Variables: ', pt, y, x1, x2,M
+ctest      write(*,*) 'Variables: ', pt, y, x1, x2,M, FuncPartonLevelSigma
       return 
       end 
 
