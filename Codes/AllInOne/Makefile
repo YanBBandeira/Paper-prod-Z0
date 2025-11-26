@@ -12,7 +12,7 @@ LHAPDFS_LIBs = `lhapdf-config --cflags --libs` -lstdc++
 
 # Executáveis e seus arquivos fonte
 EXEC1 = kslinear
-SRC1 = TotalCrossSection.f DADMUL.f dgauss.f vegas11.f 
+SRC1 = tst1.f DADMUL.f dgauss.f #vegas11.f 
 
 #EXEC2 = ksnonlinear
 #SRC2 = Z0-ksnonlinear.f DADMUL.f dgauss.f CT14Pdf.f
