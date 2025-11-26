@@ -22,23 +22,20 @@
       
       
       program z_pt_distribution
+      use globals 
       implicit none
-      integer, parameter :: dp = kind(1.0d0)
-      integer :: i, npt
-      real(dp), parameter :: pi = 3.14159265358979323846d0
-      real(dp), parameter :: alfem = 1.0d0/137.0d0
-      real(dp), parameter :: sin2 = 0.231d0
-      real(dp), parameter :: Mz = 91.2d0
-      real(dp), parameter :: ptZ_min = 0.0d0, ptZ_max = 150.0d0
-      real(dp), parameter :: y_min = 2.0d0, y_max = 4.5d0
-      real(dp) :: aw, ptZ
-      real(dp), allocatable :: ptz_vals(:), dsigma_dpt(:)
-      external :: integrand
-
+      integer, parameter :: nPoints = 40
+      integer iset
+      double precision pt(nPoints),pt_min,pt_max, pt, dpt
+      double precision Gevtopb
+      double precision integrand,Result,dsigma(nPoints)
+      DOUBLE PRECISION A,B,WK,EPS,RELERR
+      INTEGER          N,IWK,IMINPTS,IMAXPTS,IFFAIL,NFNEVL
+      DIMENSION A(2), B(2), WK(1100000)
       !-----------------------------------------------------
       ! Preparação
       !-----------------------------------------------------
-      nPoints = 40
+
       pt_min = dlog10(1.d0)
       pt_max = dlog10(300.d0)
 
@@ -49,14 +46,12 @@
       call TMDset(iset)
       call InitPDFsetByName("CT10nlo")
       
-      do i = 1, npt
-      ptz_vals(i) = ptZ_min + (i-1)*(ptZ_max-ptZ_min)/(npt-1)
-      end do
+      
 
       !-----------------------------------------------------
       ! Loop em pT
       !-----------------------------------------------------
-      
+      open(unit=11,file='dsig_dpt',status='unknown')
       Gevtopb = 0.389d9 !GeV-2 to pb
       !DADMUL routine parameters:
       N = 2               !Dimension
@@ -69,15 +64,16 @@
       B(1) = 60.0d0       !Upper limit for variable 1
       B(2) = 120.0d0       !Upper limit for variable 2
     
-      do i = 1, npt
-      ptZ = ptz_vals(i)
+      do ipt = 1, nPoints
+      pt(ipt) = 10.d0**(pt_min + (ipt-1.d0)*dpt) - 1.d0
+      pt = pt(ipt)
       CALL DADMUL(Integrand,N,A,B,
      * IMINPTS,IMAXPTS,EPS,WK,IWK,Result,
      * RELERR,NFNEVL,IFFAIL)
      
-      dsigma = Gevtopb*Result
-      write(*,*)
-      write(*,'(F10.4,2X,E12.5)') ptz_vals(i), dsigma_dpt(i)
+      dsigma(ipt) = Gevtopb*Result
+      write(*,*) pt(ipt), dsigma(ipt)
+      write(11,'(F10.4,2X,E12.5)') pt(ipt), dsigma(ipt)
       end do
       
       end program z_pt_distribution
@@ -115,6 +111,7 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       ! x: M, y: y_Z
       !-----------------------------------------------------
       function integrand(N,X)
+      use globals
       implicit none
       INTEGER N 
       DOUBLE PRECISION Int, akt, theta, kv, pi
@@ -127,7 +124,7 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       !Integration variables 
       yZ    = X(1) 
       MZZ   = X(2) 
-      
+      ptz   = pt
 ctest      write(*,*) 'int var ',x(2), x(1) 
 
       
@@ -161,7 +158,7 @@ ctest      write(*,*) 'int var ',x(2), x(1)
       sqrt_M2pT2 = DSQRT(M2 + pt2) 
       x1 = (sqrt_M2pT2/RS)*DEXP(y)
       x2 = (sqrt_M2pT2/RS)*DEXP(-y)
-      VarJacobian = (2.d0/rs)*DSQRT(MZZ2 + pt2)*DCOSH(y)
+      VarJacobian = (2.d0/rs)*DSQRT(M2 + pt2)*DCOSH(y)
       preIntegral = x1/(x1 + x2)
       result = dgauss(IntegrandHadronicCrossSection,x1,1.d0,1.d-4) 
               
