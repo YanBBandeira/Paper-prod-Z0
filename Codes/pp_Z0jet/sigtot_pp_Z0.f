@@ -461,6 +461,18 @@ ctest      write(*,*) 'M2, M, x1, x2: ', m2,mVar, x1, x2
       
 ctest      write(*,*) 'Pre-integral: ', varJacobian, preIntegral
 
+      Gamma  = 2.4952d0 !GeV
+      Gamma2 = Gamma**2.d0
+      propsqrd = 1.d0/(((M2-MZ2)**2.d0) + MZ2*Gamma2)
+      CPL = (((alfem*M2)/(dsin(2.d0*aw)**2.d0))*(0.08d0)*propsqrd)
+     &       /(4.d0*(pi**2.d0))
+      !previously, it was ML2, now I changed to ML
+c     -----------------------------------------------------------------   
+      U  = xp/xf
+      U2 = U**2.D0 
+c     -----------------------------------------------------------------
+      DT = 4.D0*(U2 + (1.D0-U)**2.D0)
+      DL = 8.D0*U*(1.D0-U)
 
 
 
