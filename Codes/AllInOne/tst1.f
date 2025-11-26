@@ -128,7 +128,7 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       yZ    = X(1) 
       MZZ   = X(2) 
       ptz   = pt
-ctest      write(*,*) 'int var ',x(2), x(1) 
+      write(*,*) 'int var ',yZ,MZZ,ptZ
 
       
       HadronicCrossSection = DileptonDecay(MZZ)
