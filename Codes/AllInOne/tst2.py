@@ -1,0 +1,219 @@
+import numpy as np
+from scipy.integrate import dblquad # Substitui DADMUL/VEGAS para integração 2D
+from scipy.interpolate import RegularGridInterpolator # Para FuncPartonLevelSigma
+
+# --- 1. MÓDULOS DE CONSTANTES E GLOBAIS (Substituindo MODULEs) ---
+
+class Parameters:
+    PI = 4.0 * np.arctan(1.0)
+    PI2 = PI**2.0
+    ALFEM = 1.0 / 137.0
+    SIN2 = 0.230  # Usando 0.23d0 do Fortran
+    AW = np.arcsin(np.sqrt(SIN2))
+    MZ = 91.2  # Massa do Z0 em GeV
+    RS = 13000.0  # Energia CM sqrt(s) em GeV
+
+class Globals:
+    # Variáveis que seriam globais/common
+    pt = 0.0  # ptZ fixo durante a integração interna
+    x1 = 0.0
+    x2 = 0.0
+    m = 0.0
+
+# Inicializa as classes de constantes e globais
+params = Parameters()
+globals_vars = Globals()
+
+# --- 2. FUNÇÕES FÍSICAS (Simplificadas/Placeholders) ---
+
+def DileptonDecay(M_var):
+    """
+    Calcula o termo de decaimento Z -> l+ l- (Baseado na função Fortran)
+    """
+    M = M_var
+    M2 = M**2.0
+    Mz2 = params.MZ**2.0
+
+    # Termo de largura de decaimento (simplificado)
+    DecayWidth = (params.ALFEM * M / (6.0 * (np.sin(2.0 * params.AW)**2.0))) * (
+        (160.0 / 3.0) * (np.sin(params.AW)**4.0) - 40.0 * (np.sin(params.AW)**2.0) + 21.0
+    )
+
+    Branch = 3.3e-2  # 3.3%
+    
+    # Distribuição de massa invariante (Lorentzian)
+    InvariantMassDist = (1.0 / params.PI) * (
+        (M * DecayWidth) / ((M2 - Mz2)**2.0 + (M * DecayWidth)**2.0)
+    )
+
+    Result = InvariantMassDist * Branch
+    return Result
+
+# --- 3. SIMULAÇÃO DO GRID DE INTERPOLAÇÃO (FuncPartonLevelSigma) ---
+
+# Como você mencionou que FuncPartonLevelSigma é um grid 2D (y, pt)
+# Precisamos criar um grid de exemplo para demonstrar a interpolação.
+# Em um código real, você carregaria estes dados de um arquivo.
+
+# Exemplo de definição dos eixos do grid (deve corresponder aos seus bins)
+NY_GRID = 60
+NPT_GRID = 60
+Y_MIN_GRID, Y_MAX_GRID = 2.0, 4.5
+PT_MIN_GRID, PT_MAX_GRID = 0.0, 150.0
+
+data = np.loadtxt(r"C:\Users\Callidus\Documents\Clones\Paper-prod-Z0\Codes\Testes\tst_grid.dat")
+y_axis = np.unique(data[:,0])
+pt_axis = np.unique(data[:,1])
+sigma_grid_data = data[:,2].reshape(len(y_axis ), len(pt_axis))
+sigma_interpolator = RegularGridInterpolator((y_axis, pt_axis), sigma_grid_data, 
+                                             bounds_error=False, fill_value=0.0)
+
+def FuncPartonLevelSigma(yVar, ptVar, mVar ):
+    """
+    Substitui a função Fortran pela interpolação do grid 2D (y, pt).
+    O mVar (massa) é ignorado na interpolação 2D, mas mantido para consistência.
+    """
+    # O grid é 2D (y, pt). O mVar não é usado na interpolação 2D.
+    sqrt_M2pT2 =  np.sqrt(mVar**2.0 + ptVar**2) 
+    x1 = (sqrt_M2pT2/Parameters.RS)*np.exp(yVar)
+    x2 = (sqrt_M2pT2/Parameters.RS)*np.exp(-yVar)
+    VarJacobian = (2.0/Parameters.RS)* sqrt_M2pT2*np.cosh(yVar)
+    preIntegral = x1/(x1 + x2)
+    
+    # Garantir que ptVar não seja negativo (embora o loop principal deva evitar isso)
+    pt_interp = max(ptVar, PT_MIN_GRID) 
+    
+    # O interpolador espera um array de pontos: [[y1, pt1], [y2, pt2], ...]
+    points = np.array([[yVar, pt_interp]])
+    
+    # O resultado é um array, pegamos o primeiro elemento [0]
+    HadronicCrossSection = sigma_interpolator(points)[0] * 2.568e-9 # pb -> GeV^-2
+    
+    # Em um código real, você calcularia x1, x2 aqui e usaria PDFs/TMDs
+    # Aqui, retornamos o valor do grid.
+    return HadronicCrossSection*VarJacobian*preIntegral
+
+# --- 4. FUNÇÃO INTEGRANDA (Substituindo TestIntegrand) ---
+
+def TestIntegrand(MZZ, yZ, ptZ):
+    """
+    Função integranda para DADMUL/dblquad.
+    Integra sobre M e y, mantendo pT (ptZ) fixo.
+    """
+    # Variáveis de integração: MZZ (Massa), yZ (Rapidez)
+    
+    # Jacobian da transformação das variáveis uniformes XX(1) -> yZ e XX(2) -> MZZ
+    # Fortran: jac = (4.5d0 - 2.0d0) * (120.0d0 - 60.0d0)
+    jac = (4.5 - 2.0) * (120.0 - 60.0)
+    
+    # Termo de decaimento
+    DecayTerm = DileptonDecay(MZZ)
+    
+    # Seção de choque hadrônica (interpolação no grid)
+    HadronicCS = FuncPartonLevelSigma(yZ, ptZ, MZZ)
+    
+    # O integrando final no Fortran era: HadronicCrossSection * 2.0 * Mzz
+    # O fator 2*Mzz vem da transformação dM^2 -> 2M dM, se M^2 fosse a variável de integração.
+    # Como estamos integrando sobre M (MZZ), o fator 2*Mzz é o jacobiano de M^2 -> M.
+    
+    Result = DecayTerm * HadronicCS * MZZ * np.pi * ptZ
+    
+    return Result
+
+
+
+
+
+from scipy.integrate import dblquad
+
+M_MIN, M_MAX = 60.0, 120.0
+PT_MIN, PT_MAX = 0.0, 250.0
+
+def dsigma_dy(yZ):
+    """
+    Calcula dσ/dy para um valor fixo de yZ,
+    integrando sobre M e pT.
+    """
+
+    # integrando com pt como variável interna
+    def integrand(pt, MZZ):
+        return TestIntegrand(MZZ, yZ, pt)
+
+    # integra em M e pT
+    result, error = dblquad(
+        integrand,
+        M_MIN, M_MAX,           # limites externos (M)
+        lambda M: PT_MIN,       # limites internos (pt)
+        lambda M: PT_MAX,
+        epsabs=1e-4,
+        epsrel=1e-4
+    )
+
+    return result
+
+
+def z_y_distribution():
+    y_values = np.linspace(2.0, 4.5, 40)
+    dsigma_values = []
+
+    GEV_TO_PB = 0.389e9
+
+    print("\n--- Calculando dσ/dy ---\n")
+
+    for yZ in y_values:
+        val = dsigma_dy(yZ)
+        val_pb = GEV_TO_PB * val
+        dsigma_values.append(val_pb)
+
+        print(f"y={yZ:.3f},  dσ/dy = {val_pb:.4e} pb")
+
+    np.savetxt("dsig_dy.dat",
+               np.column_stack([y_values, dsigma_values]),
+               fmt="%.5f\t%.6e")
+
+    print("\nArquivo salvo: dsig_dy.dat")
+
+    return y_values, dsigma_values
+
+
+
+
+# Executar o programa principal
+if __name__ == "__main__":
+    z_y_distribution()
+    
+    
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+data = np.loadtxt("dsig_dy.dat")
+y = data[:,0]
+dsig = data[:,1]
+
+y_low  = np.array([2.000, 2.125, 2.250, 2.375, 2.500, 2.625, 2.750, 2.875,
+                   3.000, 3.125, 3.250, 3.375, 3.500, 3.625, 3.750, 3.875,
+                   4.000, 4.250])
+y_high = np.array([2.125, 2.250, 2.375, 2.500, 2.625, 2.750, 2.875, 3.000,
+                   3.125, 3.250, 3.375, 3.500, 3.625, 3.750, 3.875, 4.000,
+                   4.250, 4.500])
+y_bins = 0.5*(y_low + y_high)  # centro do bin
+sigma_y = np.array([12.8, 40.4, 65.2, 87.5, 106.3, 122.7, 134.5, 141.7,
+                    147.5, 145.4, 134.8, 118.5, 99.0, 77.6, 57.9, 39.5,
+                    18.2, 2.7])
+
+plt.figure(figsize=(8,6))
+plt.plot(y, dsig, lw=2, color='navy')
+plt.plot(y_bins, sigma_y, 'o', color='red', label='LHCb')
+plt.xlabel(r"$y$", fontsize=15)
+plt.ylabel(r"$d\sigma/dy$ [pb]", fontsize=15)
+plt.title("Distribuição de rapidez do $Z^0$", fontsize=16)
+
+plt.grid(True, ls='--', alpha=0.4)
+plt.tight_layout()
+plt.show()
+
+
+
+
