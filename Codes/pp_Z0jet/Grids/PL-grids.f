@@ -168,13 +168,13 @@ c     ------------------------------------------------------------------
       
       call evolvePDF(xf,q,f)
       
-      u = f(2)        !u
-      d = f(1)        !d
+      u = f(1)        !u
+      d = f(2)        !d
       s = f(3)        !s
       c = f(4)        !c
       b = f(5)        !b
-      uBar = f(-2)    !u_bar
-      dBar = f(-1)    !d_bar
+      uBar = f(-1)    !u_bar
+      dBar = f(-2)    !d_bar
       sBar = f(-3)    !s_bar 
       cBar = f(-4)    !c_bar
       bBar = f(-5)    !b_bar
@@ -452,7 +452,7 @@ c      alphas = 0.12d0
       alphas = sc(arg)
 c      alphas = 0.2d0
       akt2 = akt**2.d0     
-
+cOPT      alphas = sc(akt2)
       pre_ugd = 4.d0*pi*alphas/3.d0
       ugd = (pre_ugd*F_KS(x2,akt))/akt2
 

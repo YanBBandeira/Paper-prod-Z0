@@ -136,7 +136,7 @@ ctest      write(*,*) 'int var ',yZ,MZZ,ptZ, pt
       HadronicCrossSection = jac*DileptonDecay(MZZ)
      &      *FuncPartonLevelSigma(yZ, ptZ, 91.2d0)
       
-      TestIntegrand = HadronicCrossSection*2.d0*Mzz*pi*pt
+      TestIntegrand = HadronicCrossSection*4.d0*Mzz*pi*pt
 ctest      write(*,*) HadronicCrossSection, Mzz, integrand
       return
       end
@@ -157,7 +157,7 @@ ctest      write(*,*) HadronicCrossSection, Mzz, integrand
       
       pt = ptVar
       y  = yVar
-      M  = MZ
+      M  = mVar
       Mvarr = mVar
       M2 = Mvarr**2.d0
       pt2 = pt**2.d0
@@ -228,15 +228,15 @@ c     ------------------------------------------------------------------
 c     This is the parton distribution function (PDF) initialization
 c     ------------------------------------------------------------------   
       
-      call evolvePDF(xf,q**2.d0,f)
+      call evolvePDF(xf,q,f)
       
-      u = f(2)        !u
-      d = f(1)        !d
+      u = f(1)        !u
+      d = f(2)        !d
       s = f(3)        !s
       c = f(4)        !c
       b = f(5)        !b
-      uBar = f(-2)    !u_bar
-      dBar = f(-1)    !d_bar
+      uBar = f(-1)    !u_bar
+      dBar = f(-2)    !d_bar
       sBar = f(-3)    !s_bar 
       cBar = f(-4)    !c_bar
       bBar = f(-5)    !b_bar
@@ -507,15 +507,15 @@ c     ==================================================================
       EXTERNAL F_KS,sc
       
 c      alphas = 0.12d0
-      arg =  ( 4.d0 /akt**2.d0)  + 1.9d0 
-      alphas = sc(arg)
+cOLD      arg =  ( 4.d0 /akt**2.d0)  + 1.9d0 
+cOLD      alphas = sc(arg)
 c      alphas = 0.2d0
       akt2 = akt**2.d0     
-
+      alphas = sc(akt2)
       pre_ugd = 4.d0*pi*alphas/3.d0
       ugd = (pre_ugd*F_KS(x2,akt))/akt2
 
-ctest      write(*,*) 'UGD', ugd, pre_ugd, F_KS(x2,akt), akt2, alphas
+      write(*,*) 'UGD', ugd, pre_ugd, F_KS(x2,akt), akt2, alphas
       RETURN 
       END 
 
