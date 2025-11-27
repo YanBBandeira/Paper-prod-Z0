@@ -21,7 +21,7 @@
       program PL_grids_kslinear
       use parameters
       
-      integer, parameter :: nPoints = 80
+      integer, parameter :: nPoints = 120
 c     ------------------------------------------------------------------
       double precision y(nPoints), y_min, y_max, dy 
       double precision pt(nPoints), pt_min, pt_max, dpt
@@ -107,8 +107,8 @@ c     ==================================================================
       result = dgauss(IntegrandHadronicCrossSection,x1,1.d0,1.d-4) 
               
     
-      units = 0.389d9 !GeV-2 to pb
-      FuncPartonLevelSigma = result*units
+     
+      FuncPartonLevelSigma = result
 ctest      write(*,*) 'Variables: ', pt, y, x1, x2,M
       return 
       end 
@@ -166,7 +166,7 @@ c     ------------------------------------------------------------------
 c     This is the parton distribution function (PDF) initialization
 c     ------------------------------------------------------------------   
       
-      call evolvePDF(xf,q**2.d0,f)
+      call evolvePDF(xf,q,f)
       
       u = f(2)        !u
       d = f(1)        !d
@@ -244,7 +244,7 @@ c     ------------------------------------------------------------------
     
 
       Result = (upQuarkCS + downStrangeQuarksCS + 
-     &         charmQuarkCS + bottomQuarkCS )/z
+     &         charmQuarkCS + bottomQuarkCS )/(z**2.d0)
 
       IntegrandHadronicCrossSection = Result
 

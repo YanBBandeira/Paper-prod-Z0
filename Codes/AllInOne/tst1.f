@@ -24,7 +24,7 @@
       program z_pt_distribution
       use globals 
       implicit none
-      integer, parameter :: nPoints = 40
+      integer, parameter :: nPoints = 10
       integer iset, ipt, NN
       double precision ptZ
       double precision pt_min, pt_max, dpt
@@ -57,9 +57,9 @@
       Gevtopb = 0.389d9 !GeV-2 to pb
       !DADMUL routine parameters:
       NN = 2               !Dimension
-      IMINPTS = 500      !Min number of points
-      IMAXPTS = 5000   !Max number of points
-      EPS = 1.d-3          !Numerical precision    
+      IMINPTS = 1000      !Min number of points
+      IMAXPTS = 10000   !Max number of points
+      EPS = 1.d-2          !Numerical precision    
       IWK = 110000        !Work array dimension
       AA(1) = 0.0d0       !Lower limit for variable1 
       AA(2) = 0.0d0       !Lower limit for variable 2
@@ -134,9 +134,9 @@ ctest      write(*,*) 'int var ',yZ,MZZ,ptZ, pt
       jac = (4.5d0 - 2.d0)*(120.d0 - 60.d0)
       
       HadronicCrossSection = jac*DileptonDecay(MZZ)
-     &      *FuncPartonLevelSigma(yZ, ptZ, MZZ)
+     &      *FuncPartonLevelSigma(yZ, ptZ, 91.2d0)
       
-      TestIntegrand = HadronicCrossSection*2.d0*Mzz
+      TestIntegrand = HadronicCrossSection*2.d0*Mzz*pi*pt
 ctest      write(*,*) HadronicCrossSection, Mzz, integrand
       return
       end
@@ -148,7 +148,7 @@ ctest      write(*,*) HadronicCrossSection, Mzz, integrand
       use globals
       use parameters
       double precision FuncPartonLevelSigma, ptVar, yVar, mVar
-      double precision pt2, M2, y
+      double precision pt2, M2, y, Mvarr
       double precision result,IntegrandHadronicCrossSection
       double precision dgauss, sqrt_M2pT2
       double precision VarJacobian, preIntegral
@@ -157,9 +157,9 @@ ctest      write(*,*) HadronicCrossSection, Mzz, integrand
       
       pt = ptVar
       y  = yVar
-      M  = mVar
-
-      M2 = M**2.d0
+      M  = MZ
+      Mvarr = mVar
+      M2 = Mvarr**2.d0
       pt2 = pt**2.d0
 
       sqrt_M2pT2 = DSQRT(M2 + pt2) 
@@ -167,7 +167,7 @@ ctest      write(*,*) HadronicCrossSection, Mzz, integrand
       x2 = (sqrt_M2pT2/RS)*DEXP(-y)
       VarJacobian = (2.d0/rs)*DSQRT(M2 + pt2)*DCOSH(y)
       preIntegral = x1/(x1 + x2)
-      result = dgauss(IntegrandHadronicCrossSection,x1,1.d0,1.d-4) 
+      result = dgauss(IntegrandHadronicCrossSection,x1,1.d0,1.d-3) 
               
     
       FuncPartonLevelSigma = preIntegral*result*VarJacobian
@@ -306,7 +306,7 @@ c     ------------------------------------------------------------------
     
 
       Result = (upQuarkCS + downStrangeQuarksCS + 
-     &         charmQuarkCS + bottomQuarkCS )/z
+     &         charmQuarkCS + bottomQuarkCS )/(z**2.d0)
 
       IntegrandHadronicCrossSection = Result
 
