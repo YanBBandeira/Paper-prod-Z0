@@ -448,12 +448,12 @@ c     ==================================================================
       EXTERNAL F_KS,sc
       
 c      alphas = 0.12d0
-      arg =  ( 4.d0 /akt**2.d0)  + 1.9d0 
-      alphas = sc(arg)
+copt      arg =  ( 4.d0 /akt**2.d0)  + 1.9d0 
+copt      alphas = sc(arg)
 c      alphas = 0.2d0
       akt2 = akt**2.d0     
-cOPT      alphas = sc(akt2)
-      pre_ugd = 4.d0*pi*alphas/3.d0
+      alphas = sc(akt2)
+      pre_ugd = 1.d0!4.d0*pi*alphas/3.d0
       ugd = (pre_ugd*F_KS(x2,akt))/akt2
 
 ctest      write(*,*) 'UGD', ugd, pre_ugd, F_KS(x2,akt), akt2, alphas

@@ -392,7 +392,7 @@ ctest      write(*,*) 'int var ',x(2), x(1)
       
       TransverseMomentumIntegral = Int
       
-ctest      write(*,*) 'Transverse Momentum Integral: ', Int, kv, theta
+      write(*,*) 'Transverse Momentum Integral: ', Int, kv, theta
       RETURN
       END  
 
@@ -515,7 +515,7 @@ c      alphas = 0.2d0
       pre_ugd = 4.d0*pi*alphas/3.d0
       ugd = (pre_ugd*F_KS(x2,akt))/akt2
 
-      write(*,*) 'UGD', ugd, pre_ugd, F_KS(x2,akt), akt2, alphas
+ctest      write(*,*) 'UGD', ugd, pre_ugd, F_KS(x2,akt), akt2, alphas
       RETURN 
       END 
 
