@@ -61,7 +61,7 @@ NPT_GRID = 60
 Y_MIN_GRID, Y_MAX_GRID = 2.0, 4.5
 PT_MIN_GRID, PT_MAX_GRID = 0.0, 150.0
 
-data = np.loadtxt(r"C:\Users\Callidus\Documents\Clones\Paper-prod-Z0\Codes\Testes\tst_grid.dat")
+data = np.loadtxt(r"C:\Users\Callidus\Documents\Clones\Paper-prod-Z0\Codes\pp_Z0jet\Grids\DatFiles\tst_grid.dat")
 y_axis = np.unique(data[:,0])
 pt_axis = np.unique(data[:,1])
 sigma_grid_data = data[:,2].reshape(len(y_axis ), len(pt_axis))
@@ -76,7 +76,7 @@ def FuncPartonLevelSigma(yVar, ptVar, mVar ):
     # O grid é 2D (y, pt). O mVar não é usado na interpolação 2D.
     sqrt_M2pT2 =  np.sqrt(mVar**2.0 + ptVar**2) 
     x1 = (sqrt_M2pT2/Parameters.RS)*np.exp(yVar)
-    x2 = (sqrt_M2pT2/Parameters.RS)*np.exp(-yVar)
+    x2 = (sqrt_M2pT2/Parameters.RS)*np.exp(yVar)
     VarJacobian = (2.0/Parameters.RS)* sqrt_M2pT2*np.cosh(yVar)
     preIntegral = x1/(x1 + x2)
     
@@ -87,7 +87,7 @@ def FuncPartonLevelSigma(yVar, ptVar, mVar ):
     points = np.array([[yVar, pt_interp]])
     
     # O resultado é um array, pegamos o primeiro elemento [0]
-    HadronicCrossSection = sigma_interpolator(points)[0] * 2.568e-9 # pb -> GeV^-2
+    HadronicCrossSection = sigma_interpolator(points)[0] 
     
     # Em um código real, você calcularia x1, x2 aqui e usaria PDFs/TMDs
     # Aqui, retornamos o valor do grid.
@@ -102,9 +102,7 @@ def TestIntegrand(MZZ, yZ, ptZ):
     """
     # Variáveis de integração: MZZ (Massa), yZ (Rapidez)
     
-    # Jacobian da transformação das variáveis uniformes XX(1) -> yZ e XX(2) -> MZZ
-    # Fortran: jac = (4.5d0 - 2.0d0) * (120.0d0 - 60.0d0)
-    jac = (4.5 - 2.0) * (120.0 - 60.0)
+
     
     # Termo de decaimento
     DecayTerm = DileptonDecay(MZZ)
@@ -116,7 +114,7 @@ def TestIntegrand(MZZ, yZ, ptZ):
     # O fator 2*Mzz vem da transformação dM^2 -> 2M dM, se M^2 fosse a variável de integração.
     # Como estamos integrando sobre M (MZZ), o fator 2*Mzz é o jacobiano de M^2 -> M.
     
-    Result = DecayTerm * HadronicCS * MZZ * np.pi * ptZ
+    Result = DecayTerm * HadronicCS 
     
     return Result
 
@@ -126,8 +124,8 @@ def TestIntegrand(MZZ, yZ, ptZ):
 
 from scipy.integrate import dblquad
 
-M_MIN, M_MAX = 60.0, 120.0
-PT_MIN, PT_MAX = 0.0, 250.0
+M_MIN, M_MAX = 60.0**2.0, 120.0**2.0
+PT_MIN, PT_MAX = 0.0, 200.0
 
 def dsigma_dy(yZ):
     """
@@ -136,7 +134,9 @@ def dsigma_dy(yZ):
     """
 
     # integrando com pt como variável interna
-    def integrand(pt, MZZ):
+    def integrand(pt2, MZZ2):
+        pt = np.sqrt(pt2)
+        MZZ = np.sqrt(MZZ2)
         return TestIntegrand(MZZ, yZ, pt)
 
     # integra em M e pT

@@ -61,7 +61,7 @@ NPT_GRID = 60
 Y_MIN_GRID, Y_MAX_GRID = 2.0, 4.5
 PT_MIN_GRID, PT_MAX_GRID = 0.0, 150.0
 
-data = np.loadtxt(r"C:\Users\Callidus\Documents\Clones\Paper-prod-Z0\Codes\Testes\tst_grid.dat")
+data = np.loadtxt(r"C:\Users\Callidus\Documents\Clones\Paper-prod-Z0\Codes\pp_Z0jet\Grids\DatFiles\tst_grid.dat")
 y_axis = np.unique(data[:,0])
 pt_axis = np.unique(data[:,1])
 sigma_grid_data = data[:,2].reshape(len(y_axis ), len(pt_axis))
@@ -88,7 +88,7 @@ def FuncPartonLevelSigma(yVar, ptVar, mVar = Parameters.MZ ):
     
     # O resultado é um array, pegamos o primeiro elemento [0]
     HadronicCrossSection = sigma_interpolator(points)[0] 
-    print(HadronicCrossSection)
+
     # Em um código real, você calcularia x1, x2 aqui e usaria PDFs/TMDs
     # Aqui, retornamos o valor do grid.
     return HadronicCrossSection*VarJacobian*preIntegral
@@ -102,10 +102,6 @@ def TestIntegrand(MZZ, yZ, ptZ):
     """
     # Variáveis de integração: MZZ (Massa), yZ (Rapidez)
     
-    # Jacobian da transformação das variáveis uniformes XX(1) -> yZ e XX(2) -> MZZ
-    # Fortran: jac = (4.5d0 - 2.0d0) * (120.0d0 - 60.0d0)
-    jac = (4.5 - 2.0) * (120.0 - 60.0)
-    
     # Termo de decaimento
     DecayTerm = DileptonDecay(MZZ)
     
@@ -116,7 +112,7 @@ def TestIntegrand(MZZ, yZ, ptZ):
     # O fator 2*Mzz vem da transformação dM^2 -> 2M dM, se M^2 fosse a variável de integração.
     # Como estamos integrando sobre M (MZZ), o fator 2*Mzz é o jacobiano de M^2 -> M.
     
-    Result = DecayTerm * HadronicCS * (1.0 * MZZ) * np.pi *ptZ 
+    Result = DecayTerm * HadronicCS 
     
     return Result
 
@@ -129,8 +125,8 @@ def z_pt_distribution_python():
 
     # --- Binning para pT ---
     PT_MIN = np.log10(1.0)
-    PT_MAX = np.log10(300.0)
-    N_POINTS = 40
+    PT_MAX = np.log10(400.0)
+    N_POINTS = 80
     DPT = (PT_MAX - PT_MIN) / N_POINTS
     
     GEV_TO_PB = 0.389e9 # GeV^-2 to pb
@@ -155,7 +151,7 @@ def z_pt_distribution_python():
         # Aqui, func(MZZ, yZ) onde ptZ é fixo.
         
         # Limites de integração para M e y (do Fortran)
-        M_MIN, M_MAX = 60.0, 120.0
+        M_MIN, M_MAX = 60.0**2.0, 120.0**2.0
         Y_MIN, Y_MAX = 2.0, 4.5
         
         # A função TestIntegrand espera (MZZ, yZ) na ordem que dblquad chama.
@@ -183,7 +179,7 @@ def z_pt_distribution_python():
             integrand_wrapper, 
             M_MIN, M_MAX,  # Limites externos (MZZ)
             lambda MZZ: Y_MIN, lambda MZZ: Y_MAX, # Limites internos (yZ)
-            epsabs=1e-4, epsrel=1e-4 # Precisão similar ao EPS do Fortran
+            epsabs=1e-5, epsrel=1e-5 # Precisão similar ao EPS do Fortran
         )
         
         dsigma = GEV_TO_PB * Result_integral
@@ -239,7 +235,7 @@ plt.xlabel(r"$p_T$  [GeV]", fontsize=14)
 plt.ylabel(r"$\frac{d\sigma}{dp_T}$  [pb/GeV]", fontsize=14)
 plt.title("Distribuição de $p_T$ do $Z^0$", fontsize=15)
 
-plt.yscale('log')
+#plt.yscale('log')
 plt.xscale("log")      # Geralmente faz sentido para distribuição de pT
 plt.grid(True, which='both', linestyle='--', alpha=0.5)
 plt.legend(fontsize=13)
@@ -247,36 +243,5 @@ plt.legend(fontsize=13)
 plt.tight_layout()
 plt.show()
 
-import numpy as np
-import matplotlib.pyplot as plt
 
-y_bins = [
-    (2.0, 2.5),
-    (2.5, 3.0),
-    (3.0, 3.5),
-    (3.5, 4.0),
-    (4.0, 4.5)
-]
 
-plt.figure(figsize=(9,7))
-
-colors = ['navy','darkred','green','purple','orange']
-
-for i, (ymin, ymax) in enumerate(y_bins):
-    data = np.loadtxt(f"dsig_dpt_ybin_{i+1}.dat")
-    pt = data[:,0]
-    dsig = data[:,1]
-
-    plt.plot(pt, dsig, color=colors[i], linewidth=2,
-             label=rf"${ymin} < y < {ymax}$")
-
-plt.xscale("log")
-plt.yscale("log")
-plt.xlabel(r"$p_T$ [GeV]", fontsize=15)
-plt.ylabel(r"$d^2\sigma/(dy\,dp_T)$  [pb/GeV]", fontsize=15)
-plt.title("Distribuições de $p_T$ do $Z^0$ por intervalos de rapidez", fontsize=16)
-
-plt.grid(True, which="both", linestyle="--", alpha=0.4)
-plt.legend(fontsize=13)
-plt.tight_layout()
-plt.show()
