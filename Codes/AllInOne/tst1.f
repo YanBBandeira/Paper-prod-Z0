@@ -24,7 +24,7 @@
       program z_pt_distribution
       use globals 
       implicit none
-      integer, parameter :: nPoints = 10
+      integer, parameter :: nPoints = 15
       integer iset, ipt, NN
       double precision ptZ
       double precision pt_min, pt_max, dpt
@@ -59,7 +59,7 @@
       NN = 2               !Dimension
       IMINPTS = 1000      !Min number of points
       IMAXPTS = 10000   !Max number of points
-      EPS = 1.d-2          !Numerical precision    
+      EPS = 1.d-3          !Numerical precision    
       IWK = 110000        !Work array dimension
       AA(1) = 0.0d0       !Lower limit for variable1 
       AA(2) = 0.0d0       !Lower limit for variable 2
@@ -67,7 +67,7 @@
       BB(2) = 1.0d0       !Upper limit for variable 2
     
       do ipt = 1, nPoints
-      ptZ= 10.d0**(pt_min + (ipt-1.d0)*dpt) - .9d0
+      ptZ= 10.d0**(pt_min + (ipt-1.d0)*dpt) !- .9d0
       pt = ptZ
       CALL DADMUL(TestIntegrand,NN,AA,BB,
      * IMINPTS,IMAXPTS,EPS,WK,IWK,Result,
@@ -343,7 +343,8 @@ c     =================================================================
       z  = zVar
       M2 = mVar*mVar
 
-      preTerms = DSQRT(alfem)/(2.d0*pi2*DSIN(2.d0*aW))
+COLD      preTerms = DSQRT(alfem)/(2.d0*pi2*DSIN(2.d0*aW))
+      preTerms = alfem/(2.d0*pi2*(DSIN(2.d0*aW)**2.d0))
 ctest      write(*,*) 'Pre-terms: ', preTerms, gfv2, gfa2, mf, M2, pt, z
       !DADMUL routine parameters:
       N = 2               !Dimension
@@ -374,7 +375,7 @@ c     =================================================================
       FUNCTION TransverseMomentumIntegral(N,X)
       IMPLICIT NONE 
       INTEGER N 
-      DOUBLE PRECISION Int, akt, theta, kv, pi
+      DOUBLE PRECISION Int, akt, theta, kv,KV2, pi
       DOUBLE PRECISION TransverseMomentumIntegral, X, 
      &                 TransverseMomentumIntegrand 
       DIMENSION X(2)
@@ -382,17 +383,17 @@ c     =================================================================
       pi = 4.d0*datan(1.d0)
 
       !Integration variables 
-      kv    = X(1)/(1.d0 - X(1)) !kv goes from zero to inf
+      kv2    = X(1)/(1.d0 - X(1)) !kv goes from zero to inf
       theta = X(2)*2.d0*pi       !theta goes from 0 to 2pi
 ctest      write(*,*) 'int var ',x(2), x(1) 
-
+      kv = DSQRT(kv2)
       Int = TransverseMomentumIntegrand(kv,theta)
-     &        *((1.d0 + kv)**2.d0)*(2.d0*pi) 
+     &        *((1.d0 + kv2)**2.d0) 
       ! both 2pi and (1+kv)^2 are jacobian factors
       
       TransverseMomentumIntegral = Int
       
-      write(*,*) 'Transverse Momentum Integral: ', Int, kv, theta
+ctest      write(*,*) 'Transverse Momentum Integral: ', Int, kv, theta
       RETURN
       END  
 
@@ -429,7 +430,7 @@ c     =================================================================
 
       UGDF = ugd(akt)
 
-      Result = akt*UGDF*((GammaT + 2.d0*GammaL)*Epsilon1Var
+      Result = UGDF*((GammaT + 2.d0*GammaL)*Epsilon1Var
      &        + (LambdaT + 2.d0*LambdaL)*Epsilon2Var)  
       TransverseMomentumIntegrand = Result
 
@@ -507,11 +508,12 @@ c     ==================================================================
       EXTERNAL F_KS,sc
       
 c      alphas = 0.12d0
-cOLD      arg =  ( 4.d0 /akt**2.d0)  + 1.9d0 
-cOLD      alphas = sc(arg)
-c      alphas = 0.2d0
+      arg =  ( 4.d0 /akt**2.d0)  + 1.9d0 
+cOLD      arg = ( 4.d0 /akt**2.d0)  
+      alphas = sc(arg)
+cOLD      alphas = 0.2d0
       akt2 = akt**2.d0     
-      alphas = sc(akt2)
+cOPT      alphas = 0.08d0
       pre_ugd = 4.d0*pi*alphas/3.d0
       ugd = (pre_ugd*F_KS(x2,akt))/akt2
 
