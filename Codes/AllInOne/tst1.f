@@ -320,7 +320,7 @@ ctest      write(*,*) 'xf greater than 1, xf = ', xf
 
 c     =================================================================
 c     =================================================================
-c     =================================================================
+c     =======================m==========================================
 
       SUBROUTINE PartonTargetCrossSection(Fvar,ptVar,zVar,mVar,
      *       mfVar,gfv,gfa)
@@ -348,7 +348,7 @@ COLD      preTerms = DSQRT(alfem)/(2.d0*pi2*DSIN(2.d0*aW))
 ctest      write(*,*) 'Pre-terms: ', preTerms, gfv2, gfa2, mf, M2, pt, z
       !DADMUL routine parameters:
       N = 2               !Dimension
-      IMINPTS = 500      !Min number of points
+      IMINPTS = 1000      !Min number of points
       IMAXPTS = 5000   !Max number of points
       EPS = 1.d-3          !Numerical precision    
       IWK = 110000        !Work array dimension
@@ -383,15 +383,15 @@ c     =================================================================
       pi = 4.d0*datan(1.d0)
 
       !Integration variables 
-      kv2    = X(1)/(1.d0 - X(1)) !kv goes from zero to inf
+      kv    = X(1)/(1.d0 - X(1)) !kv goes from zero to inf
       theta = X(2)*2.d0*pi       !theta goes from 0 to 2pi
 ctest      write(*,*) 'int var ',x(2), x(1) 
-      kv = DSQRT(kv2)
+      
       Int = TransverseMomentumIntegrand(kv,theta)
-     &        *((1.d0 + kv2)**2.d0) 
+     &        /(1.d0 - X(1)) 
       ! both 2pi and (1+kv)^2 are jacobian factors
       
-      TransverseMomentumIntegral = Int
+      TransverseMomentumIntegral = kv*Int
       
 ctest      write(*,*) 'Transverse Momentum Integral: ', Int, kv, theta
       RETURN
