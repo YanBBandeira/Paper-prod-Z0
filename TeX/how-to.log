@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2025.5.13)  3 AUG 2025 18:55
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.2.10)  20 MAR 2026 14:57
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -724,15 +724,15 @@ Overfull \hbox (28.56972pt too wide) in alignment at lines 179--186
  [][][] []
  []
 
-[4] (./how-to.bbl) [5] (./how-to.aux)
+[4] [5] (./how-to.bbl) [6] (./how-to.aux)
 Package rerunfilecheck Info: File `how-to.out' has not changed.
-(rerunfilecheck)             Checksum: 621A091106E7BBD01D93FEA65D121776;1108.
+(rerunfilecheck)             Checksum: 6300EDE4FF7CBD6DEECB8F281524A1FF;1278.
  ) 
 Here is how much of TeX's memory you used:
- 16536 strings out of 480154
- 254484 string characters out of 5893788
- 622653 words of memory out of 5000000
- 34059 multiletter control sequences out of 15000+600000
+ 16544 strings out of 480154
+ 254577 string characters out of 5893788
+ 624653 words of memory out of 5000000
+ 34060 multiletter control sequences out of 15000+600000
  573212 words of font info for 177 fonts, out of 8000000 for 9000
  61 hyphenation exceptions out of 8191
  68i,11n,77p,1003b,407s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -751,10 +751,10 @@ mf/fonts/type1/public/lm/lmri10.pfb></usr/share/texmf/fonts/type1/public/lm/lmr
 i12.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb></usr/share/texmf/fo
 nts/type1/public/lm/lmsy6.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy7.pfb
 ></usr/share/texmf/fonts/type1/public/lm/lmsy8.pfb>
-Output written on how-to.pdf (5 pages, 263482 bytes).
+Output written on how-to.pdf (6 pages, 268483 bytes).
 PDF statistics:
- 201 PDF objects out of 1000 (max. 8388607)
- 151 compressed objects within 2 object streams
- 30 named destinations out of 1000 (max. 500000)
- 55337 words of extra memory for PDF output out of 61914 (max. 10000000)
+ 219 PDF objects out of 1000 (max. 8388607)
+ 168 compressed objects within 2 object streams
+ 37 named destinations out of 1000 (max. 500000)
+ 55345 words of extra memory for PDF output out of 61914 (max. 10000000)
 

@@ -10,34 +10,33 @@ LIBS = -lTMDlib -lapfelxx -lgsl -lgslcblas -lm `lhapdf-config --cflags --libs` -
 
 # Executáveis e seus arquivos fonte
 EXEC1 = sigtot_kslinear
-SRC1 = sigtot_pp_Z0.f DADMUL.f dgauss.f vegas11.f dfint.f
+SRC1 = sigtot_pp_Z0_kslinear.f DADMUL.f dgauss.f vegas11.f dfint.f
 
-#EXEC2 = ksnonlinear
-#SRC2 = Z0-ksnonlinear.f DADMUL.f dgauss.f CT14Pdf.f
+EXEC2 = sigtot_ksnonlinear
+SRC2 = sigtot_pp_Z0_ksnonlinear.f DADMUL.f dgauss.f vegas11.f dfint.f
 
-#EXEC3 = gbw
-#SRC3 = Z0-gbw.f DADMUL.f dgauss.f CT14Pdf.f
+EXEC3 = sigtot_gbw
+SRC3 = sigtot_pp_Z0_gbw.f DADMUL.f dgauss.f vegas11.f dfint.f
 
-#EXEC4 = ccfmset
-#SRC4 = Z0-ccfmset.f DADMUL.f dgauss.f CT14Pdf.f
+EXEC4 = sigtot_ccfmset
+SRC4 = sigtot_pp_Z0_ccfmset.f DADMUL.f dgauss.f vegas11.f dfint.f
 
 # Regra padrão
-all: $(EXEC1) #$(EXEC2) $(EXEC3) $(EXEC4)
+all: $(EXEC1) $(EXEC2) $(EXEC3) $(EXEC4)
 
 # Regras para compilar cada executável
 $(EXEC1): $(SRC1)
 	$(FC) $(FFLAGS) $(SRC1) -L$(LIB_DIR) $(LIBS) -o $(EXEC1)
 
-#$(EXEC2): $(SRC2)
-#	$(FC) $(FFLAGS) $(SRC2) -L$(LIB_DIR) $(LIBS) -o $(EXEC2)
+$(EXEC2): $(SRC2)
+	$(FC) $(FFLAGS) $(SRC2) -L$(LIB_DIR) $(LIBS) -o $(EXEC2)
 
-#$(EXEC3): $(SRC3)
-#	$(FC) $(FFLAGS) $(SRC3) -L$(LIB_DIR) $(LIBS) -o $(EXEC3)
+$(EXEC3): $(SRC3)
+	$(FC) $(FFLAGS) $(SRC3) -L$(LIB_DIR) $(LIBS) -o $(EXEC3)
 
-#$(EXEC4): $(SRC4)
-#	$(FC) $(FFLAGS) $(SRC4) -L$(LIB_DIR) $(LIBS) -o $(EXEC4)
+$(EXEC4): $(SRC4)
+	$(FC) $(FFLAGS) $(SRC4) -L$(LIB_DIR) $(LIBS) -o $(EXEC4)
 
 # Limpeza dos arquivos gerados
 clean:
-	rm -f $(EXEC1) 
-# $(EXEC2) $(EXEC3) $(EXEC4)
+	rm -f $(EXEC1) $(EXEC2) $(EXEC3) $(EXEC4)

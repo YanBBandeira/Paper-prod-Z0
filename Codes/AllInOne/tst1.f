@@ -43,10 +43,10 @@
 
       dpt = (pt_max - pt_min)/(nPoints)
 
-      iset = 400001 !KS-2013-linear 
+      iset = 200001 !GBW 
       call TMDinit(iset)
       call TMDset(iset)
-      call InitPDFsetByName("CT10nlo")
+      call InitPDFsetByName("CT10")
       
       
 
@@ -57,14 +57,14 @@
       Gevtopb = 0.389d9 !GeV-2 to pb
       !DADMUL routine parameters:
       NN = 2               !Dimension
-      IMINPTS = 1000      !Min number of points
+      IMINPTS = 500      !Min number of points
       IMAXPTS = 10000   !Max number of points
       EPS = 1.d-3          !Numerical precision    
       IWK = 110000        !Work array dimension
-      AA(1) = 0.0d0       !Lower limit for variable1 
-      AA(2) = 0.0d0       !Lower limit for variable 2
-      BB(1) = 1.0d0       !Upper limit for variable 1
-      BB(2) = 1.0d0       !Upper limit for variable 2
+      AA(1) = 2.0d0       !Lower limit for variable1 
+      AA(2) = 60.0d0       !Lower limit for variable 2
+      BB(1) = 4.5d0       !Upper limit for variable 1
+      BB(2) = 120.0d0       !Upper limit for variable 2
     
       do ipt = 1, nPoints
       ptZ= 10.d0**(pt_min + (ipt-1.d0)*dpt) !- .9d0
@@ -125,16 +125,16 @@ ctest      write(*,*)'Decay: ',Result,DecayWidth,Branch,InvariantMassDist
       pi = 4.d0*datan(1.d0)
 
       !Integration variables 
-      yZ    = 2.d0 + (4.5d0 - 2.d0)*XX(1) 
-      MZZ   = 60.d0 + (120.d0 - 60.d0)*XX(2) 
+      yZ    = XX(1)!2.d0 + (4.5d0 - 2.d0)*XX(1) 
+      MZZ   = XX(2)!60.d0 + (120.d0 - 60.d0)*XX(2) 
       ptz   = pt
 ctest      write(*,*) XX(1), XX(2), yZ, MZZ, ptZ
 ctest      write(*,*) 'int var ',yZ,MZZ,ptZ, pt
 
-      jac = (4.5d0 - 2.d0)*(120.d0 - 60.d0)
+      !jac = (4.5d0 - 2.d0)*(120.d0 - 60.d0)
       
       HadronicCrossSection = jac*DileptonDecay(MZZ)
-     &      *FuncPartonLevelSigma(yZ, ptZ, 91.2d0)
+     &      *FuncPartonLevelSigma(yZ, ptZ,MZZ)
       
       TestIntegrand = HadronicCrossSection*4.d0*Mzz*pi*pt
 ctest      write(*,*) HadronicCrossSection, Mzz, integrand
@@ -167,7 +167,7 @@ ctest      write(*,*) HadronicCrossSection, Mzz, integrand
       x2 = (sqrt_M2pT2/RS)*DEXP(-y)
       VarJacobian = (2.d0/rs)*DSQRT(M2 + pt2)*DCOSH(y)
       preIntegral = x1/(x1 + x2)
-      result = dgauss(IntegrandHadronicCrossSection,x1,1.d0,1.d-3) 
+      result = dgauss(IntegrandHadronicCrossSection,x1,1.d0,1.d-4) 
               
     
       FuncPartonLevelSigma = preIntegral*result*VarJacobian
@@ -201,7 +201,7 @@ c     =================================================================
       DOUBLE PRECISION upQuarkCS, downStrangeQuarksCS
       DOUBLE PRECISION charmQuarkCS, bottomQuarkCS
       DOUBLE PRECISION mf, gfv, gfa
-      
+      common/hardscale/hs
 
 
       EXTERNAL InitPDFsetByName, evolvePDF
@@ -230,13 +230,13 @@ c     ------------------------------------------------------------------
       
       call evolvePDF(xf,q,f)
       
-      u = f(1)        !u
-      d = f(2)        !d
+      u = f(2)        !u
+      d = f(1)        !d
       s = f(3)        !s
       c = f(4)        !c
       b = f(5)        !b
-      uBar = f(-1)    !u_bar
-      dBar = f(-2)    !d_bar
+      uBar = f(-2)    !u_bar
+      dBar = f(-1)    !d_bar
       sBar = f(-3)    !s_bar 
       cBar = f(-4)    !c_bar
       bBar = f(-5)    !b_bar
@@ -306,7 +306,7 @@ c     ------------------------------------------------------------------
     
 
       Result = (upQuarkCS + downStrangeQuarksCS + 
-     &         charmQuarkCS + bottomQuarkCS )/(z**2.d0)
+     &         charmQuarkCS + bottomQuarkCS )/(z**1.d0)
 
       IntegrandHadronicCrossSection = Result
 
@@ -387,11 +387,11 @@ c     =================================================================
       theta = X(2)*2.d0*pi       !theta goes from 0 to 2pi
 ctest      write(*,*) 'int var ',x(2), x(1) 
       
-      Int = TransverseMomentumIntegrand(kv,theta)
-     &        /(1.d0 - X(1)) 
-      ! both 2pi and (1+kv)^2 are jacobian factors
+      Int = 2.d0*pi*TransverseMomentumIntegrand(kv,theta)
+     &        /((1.d0 - X(1))**2.d0)
+     
       
-      TransverseMomentumIntegral = kv*Int
+      TransverseMomentumIntegral = Int
       
 ctest      write(*,*) 'Transverse Momentum Integral: ', Int, kv, theta
       RETURN
@@ -432,7 +432,7 @@ c     =================================================================
 
       Result = UGDF*((GammaT + 2.d0*GammaL)*Epsilon1Var
      &        + (LambdaT + 2.d0*LambdaL)*Epsilon2Var)  
-      TransverseMomentumIntegrand = Result
+      TransverseMomentumIntegrand = akt*Result
 
 ctest      write(*,*)'Trasnverse integrand:', Epsilon1Var, 
 ctest     &         Epsilon2Var, UGDF, Result
@@ -502,17 +502,19 @@ c     ==================================================================
 
       use parameters
       IMPLICIT NONE
-      DOUBLE PRECISION ugd, akt, alphas, arg, akt2
-      DOUBLE PRECISION pre_ugd, F_KS, sc
+      DOUBLE PRECISION ugd, akt, alphas, arg, akt2, akt4
+      DOUBLE PRECISION pre_ugd, F_KS, sc,hs
+      common/hardscale/hs
 
       EXTERNAL F_KS,sc
       
 c      alphas = 0.12d0
-      arg =  ( 4.d0 /akt**2.d0)  + 1.9d0 
+      arg = ( 4.d0 /akt**2.d0)  + 1.9d0 
 cOLD      arg = ( 4.d0 /akt**2.d0)  
-      alphas = sc(arg)
+      alphas = 0.3d0
 cOLD      alphas = 0.2d0
       akt2 = akt**2.d0     
+      akt4 = akt2**2.d0
 cOPT      alphas = 0.08d0
       pre_ugd = 4.d0*pi*alphas/3.d0
       ugd = (pre_ugd*F_KS(x2,akt))/akt2
@@ -530,7 +532,6 @@ ctest      write(*,*) 'UGD', ugd, pre_ugd, F_KS(x2,akt), akt2, alphas
       double precision up,ubar,dn,dbar,
      &                 strange,sbar,charm,cbar,bottom,bbar,glu
 
-      INTEGER iset
       Integer kf
       Integer TMDnumberPDF
 
@@ -546,7 +547,7 @@ c      write(*,*) 'not ok', x2, akt
       x = x2
       kt = akt
       xbar = 0.d0
-      mu = 100.d0
+      mu = 300.d0
       call TMDpdf(kf,x,xbar,kt,mu,up,ubar,dn,dbar,
      & strange,sbar,charm,cbar,bottom,bbar,glu)
       F_KS = glu

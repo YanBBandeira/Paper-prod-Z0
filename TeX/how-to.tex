@@ -149,7 +149,7 @@ One can simplify the parton--target cross-section only in terms of transverse an
 \frac{\dd\sigma_{T}\left(q\rightarrow qZ\right)}{\dd\ln z\dd p_T} &=&
 { \sqrt{\alpha_{\text{em}}} \over 2\pi^2 \sin 2\theta_W}
 \int \dd k\,k\,f(x,k) \Bigg\{ 
-\Big[ (g_{V,f})^2 z^4 m^2_f + (g_{A,f})^2 z^2m^2_f (2-z)^2   \Big]
+\Big[  (g_{V,f})^2 z^4 m^2_f + (g_{A,f})^2 z^2m^2_f (2-z)^2   \Big]
 \mathcal{E}_1(z,p,k,\epsilon)
 \nonumber \\ 
 && +\left[1+(1-z)^{2}\right]\Big( (g_{V,f})^2 + (g_{A,f})^2\Big)\mathcal{E}_{2}(z,p,k,\epsilon)
@@ -169,7 +169,7 @@ and
 \end{eqnarray}
 defining: 
 \begin{eqnarray}
- \Gamma_T & = & (g_{V,f})^2 z^4 m^2_f + (g_{A,f})^2 z^2m^2_f (2-z)^2 \\
+ \Gamma_T & = & (g_{V,f})^2 z^4 m^2_f + (g_{A,f})^2 z^2m^2_f (2-z)^2  \\
  \Gamma_L & = & (g_{V,f})^2(1-z)^2M^2 + (g_{A,f})^2{\Big(z^2m_f^2 + (1-z)M^2\Big)^2 \over M^2 } \\
  \Lambda_T & = & \left[1+(1-z)^{2}\right]\Big( (g_{V,f})^2 + (g_{A,f})^2\Big)\\
  \Lambda_L & = & (g_{A,f})^2 {z^2m_f^2 \over M^2}
@@ -184,6 +184,69 @@ Thus, the parton--target cross-section can be reduce to one expression:
 + \Big( \Lambda_T + 2 \Lambda_L \Big)\mathcal{E}_2(z,p,k,\epsilon)
 \Bigg\} \nonumber \\ 
 \end{eqnarray}
+
+
+\section{Impact parameter space}
+The four parton-level cross sections are, based on \cite{Bandeira:2024zjl} but with $m_a = m_b$:
+\begin{eqnarray}
+	\frac{\dd\sigma_{T}\left(q\rightarrow qZ\right)}{\dd\ln z\dd p_T}\Biggr|_{V}&=& \frac{\left(C_{f}^{G}\right)^{2}\left(g_{V,f}\right)^{2}}{2\pi^{2}}\left\{ 
+	z^4m_f^2\mathcal{D}_1(z,p,\epsilon)
+	+ [1 + (1-z)^2]\epsilon^2 \mathcal{D}_2(z,p,\epsilon)	
+	\right\} \nonumber \\
+	\\
+	\frac{\dd\sigma_{T}\left(q\rightarrow qZ\right)}{ \dd\ln z \dd p_T}\Biggr|_{A} &=& \frac{\left(C_{f}^{G}\right)^{2}\left(g_{A,f}\right)^{2}}{2\pi^{2}}\left\{ 
+	z^2m_f^2(2-z)^2\mathcal{D}_1(z,p,\epsilon)
+	+ [1 + (1-z)^2]\epsilon^2 \mathcal{D}_2(z,p,\epsilon)
+	\right\} 
+	\\ 
+	\frac{ \dd\sigma_{L}\left(q\rightarrow qZ\right)}{ \dd\ln z \dd p_T}\Biggr|_{V} &=& \frac{\left(C_{f}^{G}\right)^{2}\left(g_{V,f}\right)^{2}}{4\pi^{2}}4\left(1-z\right)^{2}M^{2}\mathcal{D}_{1}(z,p,k,\epsilon)\\\frac{ \dd\sigma_{L}\left(q\rightarrow qZ\right)}{ \dd\ln z \dd p_T}\Biggr|_{A} &=& \frac{\left(C_{f}^{G}\right)^{2}\left(g_{A,f}\right)^{2}}{4\pi^{2}}\left\{ 4\frac{\left(z^{2}m_{f}^{2}+(1-z)M^{2}\right)^{2}}{M^{2}}\mathcal{D}_{1}(z,p,\epsilon)
+	\right. \nonumber \\ && \left.
+	+4\frac{z^{2}m_{f}^{2}}{M^{2}}\mathcal{D}_{2}(z,p,\epsilon)\right\}
+\end{eqnarray}
+
+collecting the transverse contributions:
+\begin{eqnarray}
+	\frac{\dd\sigma_{T}\left(q\rightarrow qZ\right)}{\dd\ln z\dd p_T} &=& 
+	{(C^G_f)^2 \over 2 \pi^2}\left\{
+		\Big( g^2_{V,f} z^4m^2_f + g^2_{A,f} z^2m_f^2(2-z)^2\Big)
+		\mathcal{D}_1(z,p,\epsilon) 
+		\right.
+		\nonumber \\  && +
+		\left. 
+		\Big( g^2_{V,f}+ g^2_{A,f}\Big)
+		[1 + (1-z)^2]\epsilon^2
+		\mathcal{D}_2(z,p,\epsilon)
+	\right\}
+\end{eqnarray}
+for the longitudinal contribution:
+\begin{eqnarray}
+\frac{\dd\sigma_{L}\left(q\rightarrow qZ\right)}{ \dd\ln z \dd p_T} &=&
+	{(C^G_f)^2 \over \pi^2}
+	\left\{
+		 g^2_{A,f} \epsilon^2\frac{z^{2}m_{f}^{2}}{M^{2}}\mathcal{D}_{2}(z,p,\epsilon)	
+	\right. \\ && \left. +
+		\Bigg[ g^2_{V,f} (1-z)^2M^2 g^2_{A,f} + \frac{\left(z^{2}m_{f}^{2}+(1-z)M^{2}\right)^{2}}{M^{2}} \Bigg]\mathcal{D}_1(z,p,\epsilon) 
+	\right\}
+\end{eqnarray}
+
+defining: 
+\begin{eqnarray}
+	\Gamma_T & = & (g_{V,f})^2 z^4 m^2_f + (g_{A,f})^2 z^2m^2_f (2-z)^2  \\
+	\Gamma_L & = & (g_{V,f})^2(1-z)^2M^2 + (g_{A,f})^2{\Big(z^2m_f^2 + (1-z)M^2\Big)^2 \over M^2 } \\
+	\Lambda_T & = & \epsilon^2\left[1+(1-z)^{2}\right]\Big( (g_{V,f})^2 + (g_{A,f})^2\Big)\\
+	\Lambda_L & = & \epsilon^2(g_{A,f})^2 {z^2m_f^2 \over M^2}
+\end{eqnarray}
+\par 
+Thus, the parton--target cross-section can be reduce to one expression:
+\begin{eqnarray}
+	\frac{\dd\sigma\left(q\rightarrow qZ\right)}{\dd\ln z\dd p_T} &=&	
+	{ (C^G_f)^2 \over 2 \pi^2}	
+	\Bigg\{ \Big( \Gamma_T + 2\Gamma_L \Big)\mathcal{D}_1(z,p,\epsilon)
+	+ \Big( \Lambda_T + 2 \Lambda_L \Big)\mathcal{D}_2(z,p,\epsilon)
+	\Bigg\} \nonumber \\ 
+\end{eqnarray}
+
+
 \bibliographystyle{apsrev4-2}
 \bibliography{refs}
 
